@@ -367,7 +367,7 @@ function OfficialBadge() {
         color: "#ffffff",
       }}
     >
-      <Shield className="h-2.5 w-2.5" />
+      <Shield className="h-3 w-3" />
       Oficial ConvertaFlow
     </span>
   );

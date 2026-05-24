@@ -45,7 +45,7 @@ export default function NotFound() {
               boxShadow: "var(--shadow-sm)",
             }}
           >
-            <Compass className="h-9 w-9" strokeWidth={1.75} />
+            <Compass className="h-10 w-10" strokeWidth={1.75} />
           </div>
           <h1
             className="text-[28px] font-extrabold tracking-tight mb-3"

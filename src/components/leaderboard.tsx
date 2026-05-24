@@ -50,7 +50,7 @@ export function Leaderboard() {
               )}
             </span>
             <div
-              className="h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold flex-shrink-0"
+              className="h-8 w-8 rounded-full flex items-center justify-center text-[12px] font-semibold flex-shrink-0"
               style={{
                 background: "var(--surface-low)",
                 color: "var(--text-secondary)",

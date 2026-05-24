@@ -46,7 +46,7 @@ export default function ErrorBoundary({
           }}
         >
           <AlertTriangle
-            className="h-9 w-9"
+            className="h-10 w-10"
             style={{ color: "var(--warning)" }}
             strokeWidth={1.75}
           />

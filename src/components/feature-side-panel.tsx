@@ -83,7 +83,7 @@ export function FeatureSidePanel({ feature }: { feature: Feature }) {
             {mockVoterInitials.map((initial, i) => (
               <div
                 key={i}
-                className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-semibold"
+                className="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-semibold"
                 style={{
                   background: "var(--surface-low)",
                   color: "var(--text-secondary)",
@@ -96,7 +96,7 @@ export function FeatureSidePanel({ feature }: { feature: Feature }) {
             ))}
             {feature.voteCount > 12 && (
               <div
-                className="h-7 px-2 rounded-full flex items-center justify-center text-[10px] font-semibold"
+                className="h-8 px-2 rounded-full flex items-center justify-center text-[11px] font-semibold"
                 style={{
                   background: "var(--surface-low)",
                   color: "var(--text-muted)",
