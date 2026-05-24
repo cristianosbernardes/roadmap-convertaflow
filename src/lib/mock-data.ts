@@ -358,6 +358,21 @@ export function getRelatedMockFeatures(
 
 // ─── COMENTÁRIOS MOCK ────────────────────────────────────────────────────
 
+/**
+ * Reaction agregada no mock. Estrutura espelha `ReactionCount` do contrato
+ * backend (types/roadmap.ts), com extensao mock-only `voterIds` pra simular
+ * o JOIN que o backend fara em `roadmap.comment_reactions` (Sprint 3).
+ */
+export interface MockReaction {
+  emoji: string;
+  count: number;
+  /**
+   * Mock-only: cookieIds que reagiram (pra toggle off no client-side).
+   * Backend NAO retorna isso — usa JOIN com auth.user_id na hora.
+   */
+  voterIds?: string[];
+}
+
 export interface MockComment {
   id: number;
   featureId: number;
@@ -368,7 +383,7 @@ export interface MockComment {
   isOfficial: boolean;
   isPinned: boolean;
   createdAt: string;
-  reactions: { emoji: string; count: number }[];
+  reactions: MockReaction[];
   /** Threading 1 nivel — null = top-level, number = reply de */
   parentCommentId?: number | null;
   /**

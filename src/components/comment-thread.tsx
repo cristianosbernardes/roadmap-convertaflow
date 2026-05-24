@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { MockComment } from "@/lib/mock-data";
 import { CommentEditor } from "@/components/comment-editor";
+import { ReactionsBar } from "@/components/reactions-bar";
 
 /**
  * Lista de comentarios da feature com threading shallow (1 nivel).
@@ -339,35 +340,13 @@ function CommentBody({
           Responder
         </button>
 
-        {comment.reactions.map((r) => (
-          <span
-            key={r.emoji}
-            className="inline-flex items-center gap-1 px-2 h-7 rounded-full text-[12px]"
-            style={{
-              background: "var(--surface-card)",
-              border: "1px solid var(--border-secondary)",
-              color: "var(--text-secondary)",
-            }}
-          >
-            <span>{r.emoji}</span>
-            <span className="tabular-nums">{r.count}</span>
-          </span>
-        ))}
-        {comment.reactions.length > 0 && (
-          <button
-            type="button"
-            // S-C-10 (Auditoria UX-UI v2 — D.3 / Apple HIG / WCAG 2.5.5):
-            // touch target >= 44px no mobile (max-md:min-h-[44px]).
-            // Desktop mantem h-7 (28px) — sem regressao visual.
-            className="text-[12px] px-2 h-7 max-md:min-h-[44px] rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
-            style={{
-              color: "var(--text-muted)",
-              border: "1px dashed var(--border-secondary)",
-            }}
-          >
-            + Reagir
-          </button>
-        )}
+        {/* Reactions interativas (B.4 — Auditoria UX-UI v2).
+            Mock-first: toggle persiste em localStorage; backend POST
+            /comments/:id/react chega Sprint 3. */}
+        <ReactionsBar
+          commentId={comment.id}
+          initialReactions={comment.reactions}
+        />
       </div>
     </>
   );
