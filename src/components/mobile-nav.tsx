@@ -9,6 +9,7 @@ import { Menu, X } from "lucide-react";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { CATEGORY_LIST } from "@/lib/constants";
 import { redirectToLogin, redirectToSignup } from "@/lib/auth-redirect";
+import { getActivePathFromPath } from "@/lib/active-path";
 
 /**
  * Mobile navigation drawer (Sprint C — S-C-01).
@@ -233,45 +234,55 @@ function DrawerOverlay({
 
           {/* Conteúdo com scroll interno */}
           <div className="flex-1 overflow-y-auto px-3 py-4">
-            {/* Nav principal */}
-            <nav className="flex flex-col gap-1" aria-label="Navegação principal">
-              <MobileNavItem
-                href="/"
-                label="Roadmap"
-                active={pathname === "/"}
-                onNavigate={close}
-              />
-              <MobileNavItem
-                href="/buscar"
-                label="Buscar"
-                active={pathname === "/buscar"}
-                onNavigate={close}
-              />
-              <MobileNavItem
-                href="/roadmap"
-                label="Visão Kanban"
-                active={pathname === "/roadmap"}
-                onNavigate={close}
-              />
-              <MobileNavItem
-                href="/changelog"
-                label="Changelog"
-                active={pathname === "/changelog"}
-                onNavigate={close}
-              />
-              <MobileNavItem
-                href="/nova"
-                label="Sugerir"
-                active={pathname === "/nova"}
-                onNavigate={close}
-              />
-              <MobileNavItem
-                href="/sobre"
-                label="Sobre"
-                active={pathname === "/sobre"}
-                onNavigate={close}
-              />
-            </nav>
+            {/* Nav principal — usa getActivePathFromPath (Sprint D — S-D-03)
+                pra detectar rotas derivadas: /categoria/X e /feature/Y
+                destacam "Publicações" (label "Roadmap" aqui). */}
+            {(() => {
+              const active = getActivePathFromPath(pathname);
+              return (
+                <nav
+                  className="flex flex-col gap-1"
+                  aria-label="Navegação principal"
+                >
+                  <MobileNavItem
+                    href="/"
+                    label="Publicações"
+                    active={active === "publicacoes"}
+                    onNavigate={close}
+                  />
+                  <MobileNavItem
+                    href="/buscar"
+                    label="Buscar"
+                    active={pathname === "/buscar"}
+                    onNavigate={close}
+                  />
+                  <MobileNavItem
+                    href="/roadmap"
+                    label="Visão Kanban"
+                    active={active === "roadmap"}
+                    onNavigate={close}
+                  />
+                  <MobileNavItem
+                    href="/changelog"
+                    label="Changelog"
+                    active={active === "changelog"}
+                    onNavigate={close}
+                  />
+                  <MobileNavItem
+                    href="/nova"
+                    label="Sugerir"
+                    active={active === "sugerir"}
+                    onNavigate={close}
+                  />
+                  <MobileNavItem
+                    href="/sobre"
+                    label="Sobre"
+                    active={active === "sobre"}
+                    onNavigate={close}
+                  />
+                </nav>
+              );
+            })()}
 
             {/* Separador */}
             <div

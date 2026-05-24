@@ -1,8 +1,15 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { HeaderAuth } from "@/components/header-auth";
 import { MobileNav } from "@/components/mobile-nav";
 import { SearchTrigger } from "@/components/search-trigger";
+import {
+  getActivePathFromPath,
+  type ActivePath,
+} from "@/lib/active-path";
 
 /**
  * Header global do roadmap.convertaflow.com.
@@ -12,13 +19,29 @@ import { SearchTrigger } from "@/components/search-trigger";
  *
  * Auth UI (ADR-026): UserButton quando logado, SignIn modal quando anonimo.
  *
+ * Detecção de rota ativa (Sprint D — S-D-03): usa `usePathname()` +
+ * `getActivePathFromPath` (helper isomorf em src/lib/active-path.ts).
+ * Rotas derivadas como /categoria/inbox e /feature/X destacam "Publicações"
+ * porque são views filtradas/detalhe do feed principal. Rotas transversais
+ * (/buscar) não destacam nada.
+ *
+ * Pages NÃO precisam mais passar `activePath` manualmente — o Header resolve
+ * sozinho via pathname. A prop opcional `activePathOverride` continua
+ * disponível pra casos especiais (ex: testes).
+ *
  * Detalhes em [[Tokens Herdados do App e LP]] no Obsidian.
  */
 export function Header({
-  activePath = "/",
+  activePathOverride,
 }: {
-  activePath?: "/" | "/roadmap" | "/changelog";
-}) {
+  activePathOverride?: ActivePath | null;
+} = {}) {
+  const pathname = usePathname() ?? "/";
+  const active =
+    activePathOverride !== undefined
+      ? activePathOverride
+      : getActivePathFromPath(pathname);
+
   return (
     <header
       className="sticky top-0 z-30 w-full"
@@ -70,19 +93,23 @@ export function Header({
           <NavLink
             href="/"
             label="Publicações"
-            active={activePath === "/"}
+            active={active === "publicacoes"}
           />
           <NavLink
             href="/roadmap"
             label="Roadmap"
-            active={activePath === "/roadmap"}
+            active={active === "roadmap"}
           />
           <NavLink
             href="/changelog"
             label="Changelog"
-            active={activePath === "/changelog"}
+            active={active === "changelog"}
           />
-          <NavLink href="/nova" label="Sugerir" />
+          <NavLink
+            href="/nova"
+            label="Sugerir"
+            active={active === "sugerir"}
+          />
         </nav>
 
         {/* Direita: search compacta + CTAs + hambúrguer mobile */}
@@ -113,6 +140,7 @@ function NavLink({
   return (
     <Link
       href={href}
+      aria-current={active ? "page" : undefined}
       className="flex items-center h-10 px-4 rounded-[10px] text-[14px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-base)]"
       style={{
         background: active ? "rgba(30, 127, 212, 0.08)" : "transparent",

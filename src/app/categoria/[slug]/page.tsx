@@ -54,7 +54,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
       className="min-h-screen flex flex-col"
       style={{ background: "#faf8ff" }}
     >
-      <Header activePath="/" />
+      <Header />
 
       <main className="flex-1 mx-auto w-full max-w-6xl px-6 py-8">
         {/* Back */}

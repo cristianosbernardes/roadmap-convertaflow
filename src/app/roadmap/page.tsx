@@ -66,7 +66,7 @@ export default function RoadmapPage() {
       className="min-h-screen flex flex-col"
       style={{ background: "#faf8ff" }}
     >
-      <Header activePath="/roadmap" />
+      <Header />
 
       <main className="flex-1 mx-auto w-full max-w-7xl px-6 py-8">
         {/* Hero */}

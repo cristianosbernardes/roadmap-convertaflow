@@ -24,7 +24,7 @@ export function FeatureCard({ feature }: { feature: Feature }) {
       className="group block rounded-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-base)]"
     >
       <article
-        className="flex items-center gap-4 p-4 transition-colors"
+        className="flex items-center gap-4 p-4 transition-all duration-200 ease-out will-change-transform hover:scale-[1.005] hover:shadow-[0_4px_12px_rgba(30,127,212,0.08)] active:scale-[0.995]"
         style={{
           background: "var(--surface-card)",
           border: "1.5px solid var(--border-primary)",

@@ -80,7 +80,7 @@ export default async function BuscarPage({ searchParams }: BuscarPageProps) {
       className="min-h-screen flex flex-col"
       style={{ background: "#faf8ff" }}
     >
-      <Header activePath="/" />
+      <Header />
 
       <main className="flex-1 mx-auto w-full max-w-4xl px-6 py-10">
         {/* Hero */}

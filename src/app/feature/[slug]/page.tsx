@@ -65,7 +65,7 @@ export default async function FeaturePage({ params }: PageProps) {
       style={{ background: "#faf8ff" }}
     >
       <FeatureArticleLd feature={feature} />
-      <Header activePath="/" />
+      <Header />
 
       <main className="flex-1 mx-auto w-full max-w-6xl px-6 py-8">
         {/* Mobile breadcrumb — back link estilo iOS/Productlane */}
