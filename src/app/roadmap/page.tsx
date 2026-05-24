@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { KanbanCard } from "@/components/kanban-card";
+import { KanbanColumnSkeleton } from "@/components/skeletons";
 import { STATUSES, type StatusSlug } from "@/lib/constants";
 import { getMockFeaturesByStatus } from "@/lib/mock-data";
 
@@ -145,27 +147,29 @@ export default function RoadmapPage() {
                 </span>
               </header>
 
-              {/* Cards */}
-              {col.features.length === 0 ? (
-                <div
-                  className="rounded-[10px] p-4 text-center text-[12px]"
-                  style={{
-                    background: "var(--surface-card)",
-                    border: "1.5px dashed var(--border-primary)",
-                    color: "var(--text-muted)",
-                  }}
-                >
-                  Nada aqui ainda.
-                </div>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {col.features.map((f) => (
-                    <li key={f.id}>
-                      <KanbanCard feature={f} />
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {/* Cards (Suspense fallback por coluna pra streaming progressivo) */}
+              <Suspense fallback={<KanbanColumnSkeleton count={4} />}>
+                {col.features.length === 0 ? (
+                  <div
+                    className="rounded-[10px] p-4 text-center text-[12px]"
+                    style={{
+                      background: "var(--surface-card)",
+                      border: "1.5px dashed var(--border-primary)",
+                      color: "var(--text-muted)",
+                    }}
+                  >
+                    Nada aqui ainda.
+                  </div>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {col.features.map((f) => (
+                      <li key={f.id}>
+                        <KanbanCard feature={f} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Suspense>
             </div>
           ))}
         </div>

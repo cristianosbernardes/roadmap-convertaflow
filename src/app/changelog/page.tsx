@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { format } from "date-fns";
@@ -6,6 +7,7 @@ import { Bell, Copy } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { ChangelogListSkeleton } from "@/components/skeletons";
 import { MOCK_CHANGELOG, type MockChangelogEntry } from "@/lib/mock-data";
 
 export const revalidate = 60;
@@ -79,13 +81,15 @@ export default function ChangelogPage() {
         </section>
 
         {/* Lista de releases */}
-        <ul className="flex flex-col gap-10">
-          {MOCK_CHANGELOG.map((entry) => (
-            <li key={entry.id}>
-              <ChangelogItem entry={entry} />
-            </li>
-          ))}
-        </ul>
+        <Suspense fallback={<ChangelogListSkeleton count={3} />}>
+          <ul className="flex flex-col gap-10">
+            {MOCK_CHANGELOG.map((entry) => (
+              <li key={entry.id}>
+                <ChangelogItem entry={entry} />
+              </li>
+            ))}
+          </ul>
+        </Suspense>
       </main>
 
       <Footer />

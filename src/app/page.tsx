@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { CategorySidebar } from "@/components/category-sidebar";
 import { Leaderboard } from "@/components/leaderboard";
 import { FeatureCard } from "@/components/feature-card";
+import { FeatureListSkeleton } from "@/components/skeletons";
 import { STATUS_LIST } from "@/lib/constants";
 import { getMockFeaturesByStatus } from "@/lib/mock-data";
 
@@ -66,35 +68,37 @@ export default function HomePage() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Conteudo central — agrupado por status */}
           <section className="flex-1 min-w-0">
-            <div className="flex flex-col gap-10">
-              {sections.map(({ status, features }) => (
-                <div key={status.slug}>
-                  {/* Header da seção de status */}
-                  <div className="flex items-center justify-between mb-3">
-                    <h2
-                      className="flex items-center gap-2 text-[14px] font-semibold uppercase tracking-wider"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      <span>{status.emoji}</span>
-                      <span>{status.label}</span>
-                      <span
-                        className="text-[12px] font-normal lowercase"
-                        style={{ color: "var(--text-muted)" }}
+            <Suspense fallback={<FeatureListSkeleton count={6} />}>
+              <div className="flex flex-col gap-10">
+                {sections.map(({ status, features }) => (
+                  <div key={status.slug}>
+                    {/* Header da seção de status */}
+                    <div className="flex items-center justify-between mb-3">
+                      <h2
+                        className="flex items-center gap-2 text-[14px] font-semibold uppercase tracking-wider"
+                        style={{ color: "var(--text-secondary)" }}
                       >
-                        · {features.length}
-                      </span>
-                    </h2>
-                  </div>
+                        <span>{status.emoji}</span>
+                        <span>{status.label}</span>
+                        <span
+                          className="text-[12px] font-normal lowercase"
+                          style={{ color: "var(--text-muted)" }}
+                        >
+                          · {features.length}
+                        </span>
+                      </h2>
+                    </div>
 
-                  {/* Lista de cards */}
-                  <div className="flex flex-col gap-2.5">
-                    {features.map((feature) => (
-                      <FeatureCard key={feature.id} feature={feature} />
-                    ))}
+                    {/* Lista de cards */}
+                    <div className="flex flex-col gap-2.5">
+                      {features.map((feature) => (
+                        <FeatureCard key={feature.id} feature={feature} />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </Suspense>
 
             {/* Aviso mock — remover quando backend conectar */}
             <div

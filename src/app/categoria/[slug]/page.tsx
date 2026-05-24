@@ -1,12 +1,15 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Sparkles } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { FeatureCard } from "@/components/feature-card";
+import { FeatureListSkeleton } from "@/components/skeletons";
 import { CategoryIcon } from "@/components/category-icon";
 import { CategorySidebar } from "@/components/category-sidebar";
+import { EmptyState } from "@/components/empty-state";
 import { CATEGORIES, type CategorySlug } from "@/lib/constants";
 import { getMockFeaturesByCategory } from "@/lib/mock-data";
 
@@ -91,30 +94,34 @@ export default async function CategoryPage({ params }: PageProps) {
         {/* Grid: lista + sidebar */}
         <div className="flex flex-col lg:flex-row gap-8">
           <section className="flex-1 min-w-0">
-            {features.length === 0 ? (
-              <div
-                className="rounded-[10px] p-8 text-center"
-                style={{
-                  background: "var(--surface-card)",
-                  border: "1.5px dashed var(--border-primary)",
-                }}
-              >
-                <p
-                  className="text-[14px]"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Ainda não há sugestões nesta categoria. Quer ser o primeiro?
-                </p>
-              </div>
-            ) : (
-              <ul className="flex flex-col gap-2.5">
-                {features.map((f) => (
-                  <li key={f.id}>
-                    <FeatureCard feature={f} />
-                  </li>
-                ))}
-              </ul>
-            )}
+            <Suspense fallback={<FeatureListSkeleton count={5} />}>
+              {features.length === 0 ? (
+                <EmptyState
+                  icon={category.icon}
+                  iconColor="brand"
+                  title={`Nenhuma sugestão em ${category.label} ainda.`}
+                  body="Seja o primeiro a sugerir uma feature pra esta categoria. Sua ideia entra em moderação e aparece aqui assim que aprovada pela equipe."
+                  cta={{
+                    label: "Sugerir feature",
+                    href: `/nova?categoria=${slug}`,
+                    icon: Sparkles,
+                  }}
+                  ctaSecondary={{
+                    label: "Ver todas as categorias",
+                    href: "/",
+                  }}
+                  bordered
+                />
+              ) : (
+                <ul className="flex flex-col gap-2.5">
+                  {features.map((f) => (
+                    <li key={f.id}>
+                      <FeatureCard feature={f} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Suspense>
           </section>
 
           <aside className="w-full lg:w-[280px] flex-shrink-0">

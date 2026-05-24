@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -10,6 +11,7 @@ import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { FeatureArticleLd } from "@/components/json-ld";
 import { FeatureSidePanel } from "@/components/feature-side-panel";
 import { CommentThread } from "@/components/comment-thread";
+import { CommentsThreadSkeleton } from "@/components/skeletons";
 import { CategoryIcon } from "@/components/category-icon";
 import {
   getMockFeatureBySlug,
@@ -181,7 +183,9 @@ export default async function FeaturePage({ params }: PageProps) {
               >
                 Comentários ({comments.length})
               </h2>
-              <CommentThread comments={comments} featureSlug={feature.slug} />
+              <Suspense fallback={<CommentsThreadSkeleton count={3} />}>
+                <CommentThread comments={comments} featureSlug={feature.slug} />
+              </Suspense>
 
               {/* Editor: gate de permissão + min chars + min/max validation */}
               <div className="mt-4">
