@@ -1,26 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import {
-  hasVotedLocal,
-  toggleVoteLocal,
+  getLocalVote,
+  setLocalVote,
   checkVoteRateLimit,
   getOrCreateVoterCookie,
+  type VoteType,
 } from "@/lib/voter-cookie";
 
 /**
- * Vote button interativo (client-side).
+ * Vote button interativo híbrido — modelo ZDG (ADR-026 + ADR-034).
  *
- * Logica (ADR-026):
- *   - Anonimo: cookie UUID em localStorage (mock), max 20/24h, 5/min burst
- *   - Logado/assinante: tambem usa cookie inicialmente (sem mudanca de UX) +
- *     no backend (Sprint 4) sera merged ao user.id na primeira request autenticada
- *   - Toggle: 1 click vota, 2 clicks desfaz
+ * 2 botões públicos:
+ *   ▲ Positivo — contador PÚBLICO visível
+ *   ▼ Negativo — contador PRIVADO (não exposto na UI; backend coleta pra staff/CRM)
+ *
+ * Lógica:
+ *   - Mutuamente exclusivo: votar em ▼ quando já tem ▲ DESFAZ o ▲ e SETA ▼
+ *   - Toggle: clicar de novo no mesmo tipo remove o voto
  *   - Optimistic UI: contador atualiza imediato, rollback se rate limit
+ *   - Rate limit cobre ambos (1 bucket de 20/24h anônimo)
  *
- * Mock-only no momento — persistencia local. Backend POST /vote chega Sprint 3.
+ * Mock-only no momento — persistência local. Backend POST /vote chega Sprint 3
+ * com schema CHECK (vote_type IN ('up','oppose')) já antecipado.
+ *
+ * A11y:
+ *   - Cada botão tem aria-label explícito (sem depender de ícone)
+ *   - aria-pressed no estado ativo
+ *   - aria-live="polite" no count span (anuncia mudanças)
+ *   - Sem aria-live no ▼ (sem contador público)
+ *   - Focus ring brand em :focus-visible (S-C-08)
+ *   - Touch targets ≥ 44px em mobile via min-h (S-C-10)
  */
 export function VoteButtonInteractive({
   featureSlug,
@@ -30,34 +43,42 @@ export function VoteButtonInteractive({
 }: {
   featureSlug: string;
   initialVoteCount: number;
+  /** Compat: true = pré-marca como 'up'. Pra oppose pré-marcado, hidrata via cookie no mount */
   initialHasVoted?: boolean;
   variant?: "card" | "large";
 }) {
-  const [voted, setVoted] = useState<boolean>(initialHasVoted ?? false);
+  const [vote, setVote] = useState<VoteType | null>(
+    initialHasVoted ? "up" : null
+  );
   const [count, setCount] = useState<number>(initialVoteCount);
 
   // Hidrata estado do localStorage no mount (cookie persistente)
-  // Intencional: nao incluir 'voted' nas deps — so queremos hidratar 1x no mount
   useEffect(() => {
-    getOrCreateVoterCookie(); // garante UUID gerado
-    const localVoted = hasVotedLocal(featureSlug);
-    if (localVoted) {
-      setVoted((prev) => {
-        if (!prev) {
+    getOrCreateVoterCookie();
+    const localVote = getLocalVote(featureSlug);
+    if (localVote) {
+      setVote((prev) => {
+        // Se já tinha 'up' inicial e cookie tem 'up' → mantém (count já +1)
+        // Se cookie tem 'oppose' → seta sem mexer no count (oppose privado)
+        // Se cookie tem 'up' mas prev era null → +1 no count
+        if (prev === localVote) return prev;
+        if (localVote === "up" && prev !== "up") {
           setCount((c) => c + 1);
-          return true;
         }
-        return prev;
+        if (prev === "up" && localVote !== "up") {
+          setCount((c) => c - 1);
+        }
+        return localVote;
       });
     }
   }, [featureSlug]);
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleVote = (type: VoteType) => (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Se tentando ADICIONAR voto (nao desfazer), checa rate limit
-    if (!voted) {
+    const isAdding = vote !== type; // está virando esse tipo (não desfazendo)
+    if (isAdding) {
       const { canVote, retryAfterSeconds, reason } = checkVoteRateLimit();
       if (!canVote) {
         toast.error(reason ?? "Aguarde antes de votar de novo", {
@@ -70,93 +91,173 @@ export function VoteButtonInteractive({
       }
     }
 
-    // Optimistic toggle
-    const newVoted = toggleVoteLocal(featureSlug);
-    setVoted(newVoted);
-    setCount((c) => (newVoted ? c + 1 : c - 1));
+    // Optimistic update — calcula delta no contador público
+    const previous = vote;
+    const newState = setLocalVote(featureSlug, type);
 
-    if (newVoted) {
-      toast.success("Voto registrado", {
-        description: "Obrigado por contribuir com o roadmap.",
+    // Delta no contador público depende de transição:
+    //   null → up:        +1
+    //   null → oppose:     0
+    //   up → null:        -1
+    //   up → oppose:      -1   (mutex: desfaz o up, oppose é privado)
+    //   oppose → null:     0
+    //   oppose → up:      +1   (mutex: desfaz oppose, soma up)
+    //   up → up (toggle): -1   (remove)
+    //   oppose → oppose:   0   (remove, mas oppose era privado)
+    let delta = 0;
+    if (previous === "up" && newState !== "up") delta -= 1;
+    if (previous !== "up" && newState === "up") delta += 1;
+    if (delta !== 0) setCount((c) => c + delta);
+    setVote(newState);
+
+    // Feedback editorial — diferenciado pra up vs oppose
+    if (newState === "up") {
+      toast.success("Voto positivo registrado", {
+        description: "Obrigado por sinalizar interesse nesta feature.",
         duration: 2500,
+      });
+    } else if (newState === "oppose") {
+      toast.success("Sinalização registrada", {
+        description:
+          "Anotamos que esta feature não interessa pra você. Nos ajuda a priorizar.",
+        duration: 3000,
       });
     }
   };
 
-  // aria-label dinamico inclui contagem atual pra dar contexto a screen
-  // reader (S-C-07 / Auditoria UX-UI v2 E.4). Sem isso, o botao seria
-  // anunciado apenas como "Votar, pressionado/nao pressionado" sem o
-  // numero — o usuario precisa saber quantos votos a feature tem.
-  const ariaLabel = voted
-    ? `Remover voto. Total atual: ${count} ${count === 1 ? "voto" : "votos"}`
-    : `Votar. Total atual: ${count} ${count === 1 ? "voto" : "votos"}`;
+  // aria-labels — incluem contagem positiva (única exposta publicamente)
+  const upLabel =
+    vote === "up"
+      ? `Remover voto positivo. Total atual: ${count} ${count === 1 ? "voto" : "votos"}`
+      : `Votar positivo. Total atual: ${count} ${count === 1 ? "voto" : "votos"}`;
+  const opposeLabel =
+    vote === "oppose"
+      ? "Remover sinalização de desinteresse"
+      : "Sinalizar que não tem interesse nesta feature";
 
   if (variant === "large") {
     return (
-      <button
-        type="button"
-        onClick={handleClick}
-        className="flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-[10px] transition-all hover:brightness-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
+      <div
+        className="inline-flex flex-col items-center gap-1 p-2 rounded-[10px]"
         style={{
-          border: voted
-            ? "1.5px solid var(--brand-primary)"
-            : "1.5px solid var(--border-primary)",
-          background: voted ? "var(--info-bg)" : "var(--surface-card)",
-          color: voted ? "var(--brand-primary)" : "var(--text-primary)",
+          border:
+            vote === "up"
+              ? "1.5px solid var(--brand-primary)"
+              : vote === "oppose"
+                ? "1.5px solid var(--border-secondary)"
+                : "1.5px solid var(--border-primary)",
+          background:
+            vote === "up"
+              ? "var(--info-bg)"
+              : vote === "oppose"
+                ? "var(--surface-low)"
+                : "var(--surface-card)",
           minWidth: "72px",
         }}
-        aria-label={ariaLabel}
-        aria-pressed={voted}
       >
-        <ChevronUp className="h-5 w-5" strokeWidth={2.5} aria-hidden="true" />
-        {/* aria-live="polite" + aria-atomic anuncia mudancas de contagem
-            ao screen reader quando voto e registrado/desfeito (E.2). */}
+        <button
+          type="button"
+          onClick={handleVote("up")}
+          className="flex items-center justify-center h-9 w-full rounded-[7px] transition-all hover:bg-[var(--surface-low)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface-card)] max-md:min-h-[44px]"
+          style={{
+            color:
+              vote === "up" ? "var(--brand-primary)" : "var(--text-muted)",
+          }}
+          aria-label={upLabel}
+          aria-pressed={vote === "up"}
+        >
+          <ChevronUp className="h-6 w-6" strokeWidth={2.5} aria-hidden="true" />
+        </button>
         <span
           className="text-[20px] font-extrabold tabular-nums leading-none"
+          style={{ color: "var(--text-primary)" }}
           aria-live="polite"
           aria-atomic="true"
         >
           {count}
         </span>
-        <span
-          className="text-[10px] uppercase tracking-wider font-semibold"
+        <button
+          type="button"
+          onClick={handleVote("oppose")}
+          className="flex items-center justify-center h-9 w-full rounded-[7px] transition-all hover:bg-[var(--surface-low)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface-card)] max-md:min-h-[44px]"
           style={{
-            color: voted ? "var(--brand-primary)" : "var(--text-muted)",
+            color:
+              vote === "oppose"
+                ? "var(--text-secondary)"
+                : "var(--text-muted)",
           }}
+          aria-label={opposeLabel}
+          aria-pressed={vote === "oppose"}
+          title={opposeLabel}
         >
-          {voted ? "Votado" : "Votos"}
-        </span>
-      </button>
+          <ChevronDown
+            className="h-6 w-6"
+            strokeWidth={2.5}
+            aria-hidden="true"
+          />
+        </button>
+      </div>
     );
   }
 
   // Variant card (compact)
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-[10px] transition-all hover:brightness-105 active:scale-95 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
+    <div
+      className="inline-flex flex-col items-center gap-0.5 p-1 rounded-[10px] flex-shrink-0"
       style={{
-        border: voted
-          ? "1.5px solid var(--brand-primary)"
-          : "1.5px solid var(--border-primary)",
-        background: voted ? "var(--info-bg)" : "var(--surface-card)",
-        color: voted ? "var(--brand-primary)" : "var(--text-primary)",
+        border:
+          vote === "up"
+            ? "1.5px solid var(--brand-primary)"
+            : vote === "oppose"
+              ? "1.5px solid var(--border-secondary)"
+              : "1.5px solid var(--border-primary)",
+        background:
+          vote === "up"
+            ? "var(--info-bg)"
+            : vote === "oppose"
+              ? "var(--surface-low)"
+              : "var(--surface-card)",
         minWidth: "56px",
       }}
-      aria-label={ariaLabel}
-      aria-pressed={voted}
       suppressHydrationWarning
     >
-      <ChevronUp className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
+      <button
+        type="button"
+        onClick={handleVote("up")}
+        className="flex items-center justify-center h-7 w-full rounded-[7px] transition-all hover:bg-[var(--surface-low)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface-card)] max-md:min-h-[44px]"
+        style={{
+          color: vote === "up" ? "var(--brand-primary)" : "var(--text-muted)",
+        }}
+        aria-label={upLabel}
+        aria-pressed={vote === "up"}
+      >
+        <ChevronUp className="h-5 w-5" strokeWidth={2.5} aria-hidden="true" />
+      </button>
       <span
         className="text-[14px] font-bold tabular-nums leading-none"
+        style={{ color: "var(--text-primary)" }}
         aria-live="polite"
         aria-atomic="true"
       >
         {count}
       </span>
-    </button>
+      <button
+        type="button"
+        onClick={handleVote("oppose")}
+        className="flex items-center justify-center h-7 w-full rounded-[7px] transition-all hover:bg-[var(--surface-low)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--surface-card)] max-md:min-h-[44px]"
+        style={{
+          color:
+            vote === "oppose"
+              ? "var(--text-secondary)"
+              : "var(--text-muted)",
+        }}
+        aria-label={opposeLabel}
+        aria-pressed={vote === "oppose"}
+        title={opposeLabel}
+      >
+        <ChevronDown className="h-5 w-5" strokeWidth={2.5} aria-hidden="true" />
+      </button>
+    </div>
   );
 }
 

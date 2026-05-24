@@ -1,17 +1,30 @@
 /**
- * Cookie de voto anonimo — ADR-026.
+ * Cookie de voto anonimo — ADR-026 + ADR-034 (voto híbrido ZDG).
  *
  * No mock atual: UUID persistido em localStorage. Quando backend chegar
- * (Sprint 4), o backend seta cookie httpOnly Secure SameSite=Lax
+ * (Sprint 3), o backend seta cookie httpOnly Secure SameSite=Lax
  * Domain=.convertaflow.com com 10 anos de TTL.
  *
- * Mock tambem rastreia votos locais (slug → boolean) e timestamps pra
- * simular rate limit client-side (visual feedback).
+ * Suporta 2 tipos de voto (ADR-034 modelo híbrido ZDG):
+ *   - 'up'      → voto positivo, contador público
+ *   - 'oppose'  → voto negativo, PRIVADO (staff vê no CRM)
+ *
+ * Mutuamente exclusivos: clicar em 'oppose' quando já tem 'up' DESFAZ o 'up'
+ * e SETA 'oppose' (não acumula). Mesmo timestamp registrado pra rate limit.
+ *
+ * Rate limit cobre ambos os tipos (1 bucket): 20 votos / 24h anônimo,
+ * 5/min burst — cf. permissions.ts LIMITS.vote.
  */
 
 const COOKIE_KEY = "cf_roadmap_voter_id";
 const VOTES_KEY = "cf_roadmap_local_votes";
 const VOTE_TIMESTAMPS_KEY = "cf_roadmap_vote_timestamps";
+
+/** Tipos de voto suportados (espelha schema backend `vote_type` enum) */
+export type VoteType = "up" | "oppose";
+
+/** Mapa interno: slug → 'up'|'oppose' (apenas o tipo ativo, mutex) */
+type LocalVotesMap = Record<string, VoteType>;
 
 /**
  * Pega o UUID do voter atual, gerando se nao existir.
@@ -28,41 +41,58 @@ export function getOrCreateVoterCookie(): string | null {
 }
 
 /**
- * Verifica se o cookie atual ja votou nessa feature (mock-only).
- * Backend real vai verificar via uniq_vote_cookie index.
+ * Retorna o tipo de voto local atual pra essa feature, ou null se ausente.
+ * Substitui o antigo hasVotedLocal(): boolean.
  */
-export function hasVotedLocal(featureSlug: string): boolean {
-  if (typeof window === "undefined") return false;
+export function getLocalVote(featureSlug: string): VoteType | null {
+  if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(VOTES_KEY);
-    if (!raw) return false;
-    const votes = JSON.parse(raw) as Record<string, boolean>;
-    return votes[featureSlug] === true;
+    if (!raw) return null;
+    const votes = JSON.parse(raw) as LocalVotesMap;
+    return votes[featureSlug] ?? null;
   } catch {
-    return false;
+    return null;
   }
 }
 
 /**
- * Marca/desmarca voto local (mock-only).
- * Retorna o novo estado (true = votou, false = removeu voto).
+ * Aplica um voto local com lógica mutex:
+ *   - Se atual === tipo solicitado: REMOVE (toggle off)
+ *   - Se atual !== tipo solicitado (ou null): SETA o novo tipo
+ *
+ * Retorna o NOVO estado (tipo ativo ou null se removido).
  */
-export function toggleVoteLocal(featureSlug: string): boolean {
-  if (typeof window === "undefined") return false;
+export function setLocalVote(
+  featureSlug: string,
+  type: VoteType
+): VoteType | null {
+  if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(VOTES_KEY);
-    const votes: Record<string, boolean> = raw ? JSON.parse(raw) : {};
-    const newState = !votes[featureSlug];
-    if (newState) {
-      votes[featureSlug] = true;
-    } else {
+    const votes: LocalVotesMap = raw ? JSON.parse(raw) : {};
+    const current = votes[featureSlug];
+
+    let newState: VoteType | null;
+    if (current === type) {
+      // Mesmo tipo → toggle off
       delete votes[featureSlug];
+      newState = null;
+    } else {
+      // Tipo diferente ou ausente → seta (substitui)
+      votes[featureSlug] = type;
+      newState = type;
     }
+
     localStorage.setItem(VOTES_KEY, JSON.stringify(votes));
-    recordVoteTimestamp();
+    // Timestamp registrado APENAS quando há voto efetivo (add ou troca),
+    // não quando desfaz — UX espelha rate limit de servidor (delete não conta).
+    if (newState !== null) {
+      recordVoteTimestamp();
+    }
     return newState;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -89,7 +119,7 @@ function recordVoteTimestamp(): void {
  * Retorna { canVote, retryAfterSeconds?, reason? }.
  *
  * Limites (ADR-026):
- *   - 20 votos/24h por cookie
+ *   - 20 votos/24h por cookie (ambos os tipos contam pro mesmo bucket)
  *   - 5 votos/min burst
  */
 export function checkVoteRateLimit(): {
@@ -147,4 +177,14 @@ export function resetVoterCookie(): void {
   localStorage.removeItem(COOKIE_KEY);
   localStorage.removeItem(VOTES_KEY);
   localStorage.removeItem(VOTE_TIMESTAMPS_KEY);
+}
+
+/** @deprecated Use getLocalVote() — mantido temporariamente pra compat até refatorar consumers */
+export function hasVotedLocal(featureSlug: string): boolean {
+  return getLocalVote(featureSlug) === "up";
+}
+
+/** @deprecated Use setLocalVote(slug, "up") — toggle puro do positivo */
+export function toggleVoteLocal(featureSlug: string): boolean {
+  return setLocalVote(featureSlug, "up") === "up";
 }
