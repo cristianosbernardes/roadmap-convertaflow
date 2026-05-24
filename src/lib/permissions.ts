@@ -98,6 +98,17 @@ export interface BlockReason {
   body: string;
   /** Tipo da acao bloqueada — restaura contexto pos-auth (cf. useDraftRestore + ADR-029) */
   actionType?: PendingActionType;
+  /**
+   * Benefícios concretos (2-3 bullets) renderizados no modal — microcopy
+   * benefit-driven estilo Productlane/Linear. Reduzem fricção mostrando
+   * valor antes do CTA. cf. Auditoria UX-UI v2 A.4 + Sprint C/S-C-09.
+   */
+  benefits?: string[];
+  /**
+   * Microcopy de reassurance no rodapé (ex: "Sem cartão de crédito").
+   * Aparece em text-[12px] muted, centralizado.
+   */
+  footer?: string;
   /** Acao primaria */
   cta: {
     label: string;
@@ -118,11 +129,17 @@ export function getCommentBlockReason(
 ): BlockReason | null {
   if (canComment(ctx)) return null;
   return {
-    title: "Comentários são só pra cadastrados",
-    body: "Faça login ou crie sua conta gratuitamente para participar da conversa.",
+    title: "Junte-se à conversa",
+    body: "Quem comenta ajuda a moldar como cada feature vai funcionar. Sua perspectiva conta.",
     actionType: "comment",
-    cta: { label: "Entrar", action: "signin" },
-    ctaSecondary: { label: "Criar conta", action: "signup" },
+    benefits: [
+      "Responda outras pessoas e construa o debate",
+      "Receba notificação quando o time ConvertaFlow responder",
+      "Histórico das suas conversas em um só lugar",
+    ],
+    footer: "Sem cartão de crédito · Cancele quando quiser",
+    cta: { label: "Criar conta grátis", action: "signup" },
+    ctaSecondary: { label: "Já tenho conta", action: "signin" },
   };
 }
 
@@ -131,11 +148,17 @@ export function getSuggestionBlockReason(
 ): BlockReason | null {
   if (canSuggestFeature(ctx)) return null;
   return {
-    title: "Sugerir feature precisa cadastro",
-    body: "Faça login ou crie sua conta gratuitamente. Sua sugestão entra em moderação e aparece no roadmap quando aprovada.",
+    title: "Sua ideia pode ser a próxima feature",
+    body: "Nossas melhores features começaram como sugestão de cliente. A sua entra em moderação e aparece no roadmap quando aprovada.",
     actionType: "suggestion",
-    cta: { label: "Entrar", action: "signin" },
-    ctaSecondary: { label: "Criar conta", action: "signup" },
+    benefits: [
+      "Aprovação em até 48h úteis",
+      "Receba email quando virar feature pública",
+      "Veja outras pessoas votando na sua ideia",
+    ],
+    footer: "Sem cartão de crédito · Cancele quando quiser",
+    cta: { label: "Criar conta grátis", action: "signup" },
+    ctaSecondary: { label: "Já tenho conta", action: "signin" },
   };
 }
 
@@ -145,21 +168,33 @@ export function getPriorityBlockReason(
   if (canMarkPriority(ctx)) return null;
   if (ctx.tier === "anonymous") {
     return {
-      title: "Marcar prioridade é só pra clientes ativos",
-      body: "Crie conta e ative seu plano para sinalizar que esta feature é crítica pra sua empresa. Esse sinal pesa muito na nossa priorização.",
+      title: "Marque o que sua empresa precisa",
+      body: "Empresas pagantes pesam 3x na priorização. Conta nova ganha 14 dias grátis pra explorar tudo.",
       actionType: "vote-priority",
+      benefits: [
+        "Seu voto pesa 3x mais (assinante vs anônimo)",
+        "Acesso ao Beta de features em desenvolvimento",
+        "Histórico do que sua empresa já pediu",
+      ],
+      footer: "Conta nova ganha 14 dias grátis",
       cta: {
         label: "Conhecer planos",
         action: "upgrade",
         href: "https://convertaflow.com#pricing",
       },
-      ctaSecondary: { label: "Entrar", action: "signin" },
+      ctaSecondary: { label: "Já tenho conta", action: "signin" },
     };
   }
   return {
-    title: "Marcar prioridade é só pra clientes ativos",
-    body: "Ative seu plano para sinalizar que esta feature é crítica pra sua empresa. Conta de empresas pagantes pesa muito na nossa priorização.",
+    title: "Marque o que sua empresa precisa",
+    body: "Ative seu plano e sinalize quais features são críticas. Empresas pagantes pesam 3x na priorização.",
     actionType: "vote-priority",
+    benefits: [
+      "Seu voto pesa 3x mais que um voto anônimo",
+      "Acesso ao Beta de features em desenvolvimento",
+      "Histórico do que sua empresa já pediu",
+    ],
+    footer: "Mude ou cancele o plano quando quiser",
     cta: {
       label: "Ver planos",
       action: "upgrade",
@@ -174,21 +209,33 @@ export function getBugReportBlockReason(
   if (canReportBug(ctx)) return null;
   if (ctx.tier === "anonymous") {
     return {
-      title: "Bug reports são pra clientes ativos",
-      body: "Bug reports tem fluxo dedicado de suporte. Crie conta e ative seu plano para abrir tickets.",
+      title: "Bug reports têm fluxo dedicado",
+      body: "Bugs em produção vão direto pro time de suporte com prioridade. Disponível pra clientes ativos.",
       actionType: "bug-report",
+      benefits: [
+        "Resposta com SLA garantido (8h úteis)",
+        "Status visível em tempo real",
+        "Reabertura automática se o bug voltar",
+      ],
+      footer: "Conta nova ganha 14 dias grátis",
       cta: {
         label: "Conhecer planos",
         action: "upgrade",
         href: "https://convertaflow.com#pricing",
       },
-      ctaSecondary: { label: "Entrar", action: "signin" },
+      ctaSecondary: { label: "Já tenho conta", action: "signin" },
     };
   }
   return {
-    title: "Bug reports são pra clientes ativos",
-    body: "Bugs em produção tem fluxo dedicado pra clientes pagantes. Ative seu plano pra abrir tickets.",
+    title: "Bug reports têm fluxo dedicado",
+    body: "Bugs em produção vão direto pro time de suporte com prioridade. Ative seu plano pra abrir tickets.",
     actionType: "bug-report",
+    benefits: [
+      "Resposta com SLA garantido (8h úteis)",
+      "Status visível em tempo real",
+      "Reabertura automática se o bug voltar",
+    ],
+    footer: "Mude ou cancele o plano quando quiser",
     cta: {
       label: "Ver planos",
       action: "upgrade",

@@ -46,7 +46,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     >
       <Header activePath="/" />
 
-      <main className="flex-1 mx-auto w-full max-w-6xl px-6 py-10">
+      <main
+        id="main-content"
+        className="flex-1 mx-auto w-full max-w-6xl px-6 py-10"
+      >
         {/* Hero (LP-style: 40px / 800 / -0.02em) */}
         <section className="mb-10">
           <div className="inline-block">

@@ -13,7 +13,7 @@ export function KanbanCard({ feature }: { feature: Feature }) {
   return (
     <Link
       href={`/feature/${feature.slug}`}
-      className="group block"
+      className="group block rounded-[10px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-base)]"
     >
       <article
         className="flex items-center gap-3 p-3 transition-colors"

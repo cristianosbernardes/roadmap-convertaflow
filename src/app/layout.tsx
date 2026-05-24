@@ -80,6 +80,17 @@ export default function RootLayout({
           <SoftwareApplicationLd />
         </head>
         <body className={`${inter.variable} antialiased`}>
+          {/* Skip-to-content link (S-C-07 / Auditoria UX-UI v2 E.1).
+              Visualmente escondido (sr-only) ate receber foco via Tab.
+              No foco, aparece flutuando top-left com alto contraste,
+              permitindo que usuarios de teclado/screen reader pulem o
+              header inteiro e cheguem direto ao <main id="main-content">. */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-[10px] focus:bg-[var(--brand-primary)] focus:text-white focus:text-[14px] focus:font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:ring-offset-2"
+          >
+            Pular para o conteúdo
+          </a>
           {/* NuqsAdapter habilita useQueryState/useQueryStates em todo cliente.
               Necessario pra <SortControl /> e qualquer URL-state futuro. */}
           <NuqsAdapter>

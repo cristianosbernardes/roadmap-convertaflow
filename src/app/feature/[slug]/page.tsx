@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ChevronLeft, MessageCircle, Share2 } from "lucide-react";
+import { ChevronLeft, MessageCircle } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { VoteButtonInteractive } from "@/components/vote-button-interactive";
@@ -13,6 +13,7 @@ import { FeatureSidePanel } from "@/components/feature-side-panel";
 import { CommentThread } from "@/components/comment-thread";
 import { CommentsThreadSkeleton } from "@/components/skeletons";
 import { CategoryIcon } from "@/components/category-icon";
+import { ShareButton } from "@/components/share-button";
 import {
   getMockFeatureBySlug,
   getMockCommentsForFeature,
@@ -131,18 +132,14 @@ export default async function FeaturePage({ params }: PageProps) {
                 </h1>
 
                 <div className="flex items-center gap-2 mt-4">
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1.5 h-9 px-3 rounded-[10px] text-[13px] font-semibold transition-colors"
-                    style={{
-                      background: "var(--surface-card)",
-                      border: "1.5px solid var(--border-primary)",
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    <Share2 className="h-3.5 w-3.5" />
-                    Compartilhar
-                  </button>
+                  <ShareButton
+                    url={`${
+                      process.env.NEXT_PUBLIC_SITE_URL ??
+                      "https://roadmap.convertaflow.com"
+                    }/feature/${feature.slug}`}
+                    title={feature.title}
+                    summary={feature.descriptionShort}
+                  />
 
                   <a
                     href="#comentarios"

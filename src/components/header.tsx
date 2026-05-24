@@ -113,7 +113,7 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="flex items-center h-10 px-4 rounded-[10px] text-[14px] font-semibold transition-colors"
+      className="flex items-center h-10 px-4 rounded-[10px] text-[14px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-base)]"
       style={{
         background: active ? "rgba(30, 127, 212, 0.08)" : "transparent",
         color: active ? "var(--brand-primary)" : "var(--text-secondary)",

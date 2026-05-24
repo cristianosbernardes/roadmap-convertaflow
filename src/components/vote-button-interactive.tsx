@@ -83,12 +83,20 @@ export function VoteButtonInteractive({
     }
   };
 
+  // aria-label dinamico inclui contagem atual pra dar contexto a screen
+  // reader (S-C-07 / Auditoria UX-UI v2 E.4). Sem isso, o botao seria
+  // anunciado apenas como "Votar, pressionado/nao pressionado" sem o
+  // numero — o usuario precisa saber quantos votos a feature tem.
+  const ariaLabel = voted
+    ? `Remover voto. Total atual: ${count} ${count === 1 ? "voto" : "votos"}`
+    : `Votar. Total atual: ${count} ${count === 1 ? "voto" : "votos"}`;
+
   if (variant === "large") {
     return (
       <button
         type="button"
         onClick={handleClick}
-        className="flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-[10px] transition-all hover:brightness-105 active:scale-95"
+        className="flex flex-col items-center justify-center gap-1 px-4 py-3 rounded-[10px] transition-all hover:brightness-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
         style={{
           border: voted
             ? "1.5px solid var(--brand-primary)"
@@ -97,11 +105,17 @@ export function VoteButtonInteractive({
           color: voted ? "var(--brand-primary)" : "var(--text-primary)",
           minWidth: "72px",
         }}
-        aria-label={voted ? "Remover voto" : "Votar"}
+        aria-label={ariaLabel}
         aria-pressed={voted}
       >
-        <ChevronUp className="h-5 w-5" strokeWidth={2.5} />
-        <span className="text-[20px] font-extrabold tabular-nums leading-none">
+        <ChevronUp className="h-5 w-5" strokeWidth={2.5} aria-hidden="true" />
+        {/* aria-live="polite" + aria-atomic anuncia mudancas de contagem
+            ao screen reader quando voto e registrado/desfeito (E.2). */}
+        <span
+          className="text-[20px] font-extrabold tabular-nums leading-none"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           {count}
         </span>
         <span
@@ -121,7 +135,7 @@ export function VoteButtonInteractive({
     <button
       type="button"
       onClick={handleClick}
-      className="flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-[10px] transition-all hover:brightness-105 active:scale-95 flex-shrink-0"
+      className="flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-[10px] transition-all hover:brightness-105 active:scale-95 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
       style={{
         border: voted
           ? "1.5px solid var(--brand-primary)"
@@ -130,12 +144,16 @@ export function VoteButtonInteractive({
         color: voted ? "var(--brand-primary)" : "var(--text-primary)",
         minWidth: "56px",
       }}
-      aria-label={voted ? "Remover voto" : "Votar"}
+      aria-label={ariaLabel}
       aria-pressed={voted}
       suppressHydrationWarning
     >
-      <ChevronUp className="h-4 w-4" strokeWidth={2.5} />
-      <span className="text-[14px] font-bold tabular-nums leading-none">
+      <ChevronUp className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
+      <span
+        className="text-[14px] font-bold tabular-nums leading-none"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         {count}
       </span>
     </button>

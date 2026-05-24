@@ -125,7 +125,7 @@ export function CommentThread({
                 <button
                   type="button"
                   onClick={() => toggleCollapse(comment.id)}
-                  className="inline-flex items-center gap-1 mt-3 h-7 px-2 -ml-2 rounded-[7px] text-[12px] font-medium transition-colors hover:bg-[var(--surface-low)]"
+                  className="inline-flex items-center gap-1 mt-3 h-7 px-2 -ml-2 rounded-[7px] text-[12px] font-medium transition-colors hover:bg-[var(--surface-low)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
                   style={{ color: "var(--brand-primary)" }}
                 >
                   {isCollapsed ? (
@@ -314,7 +314,7 @@ function CommentBody({
         <button
           type="button"
           onClick={onReplyClick}
-          className="inline-flex items-center gap-1 h-8 px-2 rounded-[7px] text-[12px] font-medium transition-colors"
+          className="inline-flex items-center gap-1 h-8 px-2 rounded-[7px] text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
           style={{
             color: isReplying
               ? "var(--brand-primary)"
@@ -350,7 +350,7 @@ function CommentBody({
         {comment.reactions.length > 0 && (
           <button
             type="button"
-            className="text-[12px] px-2 h-7 rounded-full transition-colors"
+            className="text-[12px] px-2 h-7 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
             style={{
               color: "var(--text-muted)",
               border: "1px dashed var(--border-secondary)",
