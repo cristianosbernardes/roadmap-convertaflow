@@ -242,6 +242,12 @@ function DrawerOverlay({
                 onNavigate={close}
               />
               <MobileNavItem
+                href="/buscar"
+                label="Buscar"
+                active={pathname === "/buscar"}
+                onNavigate={close}
+              />
+              <MobileNavItem
                 href="/roadmap"
                 label="Visão Kanban"
                 active={pathname === "/roadmap"}

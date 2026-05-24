@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ptBR } from "@clerk/localizations";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "@/components/ui/sonner";
 import { SoftwareApplicationLd } from "@/components/json-ld";
+import { SearchProvider } from "@/components/search-provider";
+import { SearchCommand } from "@/components/search-command";
 import "./globals.css";
 
 // Fonte canonica do ecossistema ConvertaFlow (app + LP + roadmap).
@@ -77,8 +80,18 @@ export default function RootLayout({
           <SoftwareApplicationLd />
         </head>
         <body className={`${inter.variable} antialiased`}>
-          {children}
-          <Toaster position="bottom-right" richColors />
+          {/* NuqsAdapter habilita useQueryState/useQueryStates em todo cliente.
+              Necessario pra <SortControl /> e qualquer URL-state futuro. */}
+          <NuqsAdapter>
+            {/* SearchProvider expoe useSearch() pra qualquer botao abrir
+                o modal Cmd+K. SearchCommand vive aqui pra ser unico em toda
+                arvore (evita duplicidade de listeners de teclado). */}
+            <SearchProvider>
+              {children}
+              <SearchCommand />
+              <Toaster position="bottom-right" richColors />
+            </SearchProvider>
+          </NuqsAdapter>
         </body>
       </html>
     </ClerkProvider>

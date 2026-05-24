@@ -10,13 +10,16 @@ import { FeatureListSkeleton } from "@/components/skeletons";
 import { CategoryIcon } from "@/components/category-icon";
 import { CategorySidebar } from "@/components/category-sidebar";
 import { EmptyState } from "@/components/empty-state";
+import { SortControl } from "@/components/sort-control";
 import { CATEGORIES, type CategorySlug } from "@/lib/constants";
 import { getMockFeaturesByCategory } from "@/lib/mock-data";
+import { parseSortParam, sortFeatures } from "@/lib/sort";
 
 export const revalidate = 60;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ sort?: string | string[] }>;
 }
 
 export async function generateMetadata({
@@ -33,14 +36,18 @@ export async function generateMetadata({
   };
 }
 
-export default async function CategoryPage({ params }: PageProps) {
+export default async function CategoryPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const sp = await searchParams;
+  const sort = parseSortParam(sp.sort);
+
   const category = CATEGORIES[slug as CategorySlug];
   if (!category) {
     notFound();
   }
 
-  const features = getMockFeaturesByCategory(slug);
+  // Lista unica ordenada (sem agrupamento por status nessa rota).
+  const features = sortFeatures(getMockFeaturesByCategory(slug), sort);
 
   return (
     <div
@@ -113,13 +120,19 @@ export default async function CategoryPage({ params }: PageProps) {
                   bordered
                 />
               ) : (
-                <ul className="flex flex-col gap-2.5">
-                  {features.map((f) => (
-                    <li key={f.id}>
-                      <FeatureCard feature={f} />
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  {/* Sort control — sincroniza com ?sort= na URL (nuqs). */}
+                  <div className="mb-4">
+                    <SortControl hideLabel />
+                  </div>
+                  <ul className="flex flex-col gap-2.5">
+                    {features.map((f) => (
+                      <li key={f.id}>
+                        <FeatureCard feature={f} />
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
             </Suspense>
           </section>

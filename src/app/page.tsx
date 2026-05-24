@@ -5,8 +5,14 @@ import { CategorySidebar } from "@/components/category-sidebar";
 import { Leaderboard } from "@/components/leaderboard";
 import { FeatureCard } from "@/components/feature-card";
 import { FeatureListSkeleton } from "@/components/skeletons";
+import { SortControl } from "@/components/sort-control";
 import { STATUS_LIST } from "@/lib/constants";
 import { getMockFeaturesByStatus } from "@/lib/mock-data";
+import { parseSortParam, sortFeatures } from "@/lib/sort";
+
+interface HomePageProps {
+  searchParams: Promise<{ sort?: string | string[] }>;
+}
 
 /**
  * Home — listagem agrupada por status em coluna unica vertical.
@@ -14,15 +20,23 @@ import { getMockFeaturesByStatus } from "@/lib/mock-data";
  * Layout escolhido por ADR-005 (vs kanban): melhor mobile, mais densidade
  * visual, suporta 7 status (kanban com 7 colunas e ilegivel).
  *
+ * Ordenacao (S-C-04): mantemos agrupamento por status (semantica do roadmap
+ * publico), mas DENTRO de cada grupo ordenamos pelo `?sort` selecionado.
+ * Opcao A vs B: A (agrupada) preserva o "roadmap publico vs feed".
+ *
  * Dados: por enquanto MOCK_FEATURES (ADR-016 mock-first).
  * Quando backend chegar, substituir por fetch SSR de GET /api/v1/roadmap/features.
  */
-export default function HomePage() {
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const params = await searchParams;
+  const sort = parseSortParam(params.sort);
+
   // Apenas status com pelo menos 1 feature aparecem (evita secao vazia)
   // e respeitam a ordem canonica (sortOrder do enum).
+  // Dentro de cada grupo, aplicar sort escolhido pelo usuario.
   const sections = STATUS_LIST.map((status) => ({
     status,
-    features: getMockFeaturesByStatus(status.slug),
+    features: sortFeatures(getMockFeaturesByStatus(status.slug), sort),
   })).filter((s) => s.features.length > 0);
 
   return (
@@ -68,6 +82,11 @@ export default function HomePage() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Conteudo central — agrupado por status */}
           <section className="flex-1 min-w-0">
+            {/* Sort control — sincroniza com ?sort= na URL (nuqs). */}
+            <div className="mb-6">
+              <SortControl hideLabel />
+            </div>
+
             <Suspense fallback={<FeatureListSkeleton count={6} />}>
               <div className="flex flex-col gap-10">
                 {sections.map(({ status, features }) => (

@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Search } from "lucide-react";
 import { HeaderAuth } from "@/components/header-auth";
 import { MobileNav } from "@/components/mobile-nav";
+import { SearchTrigger } from "@/components/search-trigger";
 
 /**
  * Header global do roadmap.convertaflow.com.
@@ -87,28 +87,8 @@ export function Header({
 
         {/* Direita: search compacta + CTAs + hambúrguer mobile */}
         <div className="flex items-center gap-2">
-          <button
-            className="hidden lg:flex items-center gap-2 h-10 px-3 rounded-[10px] text-[13px] transition-colors"
-            style={{
-              background: "var(--surface-card)",
-              border: "1px solid var(--surface-high)",
-              color: "var(--text-muted)",
-              minWidth: "200px",
-            }}
-            aria-label="Pesquisar"
-          >
-            <Search className="h-4 w-4" />
-            <span>Pesquisar...</span>
-            <kbd
-              className="ml-auto text-[10px] px-1.5 py-0.5 rounded font-mono"
-              style={{
-                background: "var(--surface-low)",
-                color: "var(--text-muted)",
-              }}
-            >
-              {"⌘"}K
-            </kbd>
-          </button>
+          {/* Trigger client-side do modal Cmd+K (S-C-05). */}
+          <SearchTrigger />
 
           {/* Auth: SignIn modal quando anonimo, UserButton + Ir pro app quando logado */}
           <HeaderAuth />
