@@ -369,6 +369,14 @@ export interface MockComment {
   isPinned: boolean;
   createdAt: string;
   reactions: { emoji: string; count: number }[];
+  /** Threading 1 nivel — null = top-level, number = reply de */
+  parentCommentId?: number | null;
+  /**
+   * Denormalizado: nome do autor a quem se responde (mostrado como "Em resposta a @X").
+   * Quando alguem responde a uma reply, esse campo permite mostrar @X (autor da reply)
+   * mesmo que o parentCommentId continue apontando pro top-level (threading shallow).
+   */
+  repliedToAuthor?: string | null;
 }
 
 export const MOCK_COMMENTS: MockComment[] = [
@@ -414,14 +422,83 @@ export const MOCK_COMMENTS: MockComment[] = [
     createdAt: "2026-05-21T16:42:00Z",
     reactions: [{ emoji: "👍", count: 12 }],
   },
+  // ── Replies a Cristiano (id 1) — feature "Agente IA com memoria"
+  {
+    id: 4,
+    featureId: 1,
+    parentCommentId: 1,
+    repliedToAuthor: "Cristiano (ConvertaFlow)",
+    body: "Top demais! Quero entrar na waitlist do beta — agência com 18 clientes ativos no WhatsApp Business.",
+    authorName: "Will Carvalho",
+    authorInitial: "WC",
+    badge: "subscriber",
+    isOfficial: false,
+    isPinned: false,
+    createdAt: "2026-05-20T18:05:00Z",
+    reactions: [{ emoji: "👍", count: 5 }],
+  },
+  {
+    id: 5,
+    featureId: 1,
+    parentCommentId: 1,
+    repliedToAuthor: "Cristiano (ConvertaFlow)",
+    body: "Confirma se a retenção configurável vai ser por conversa ou por contato? Faz diferença grande pro nosso caso.",
+    authorName: "Alex Pessoal",
+    authorInitial: "AP",
+    badge: "subscriber",
+    isOfficial: false,
+    isPinned: false,
+    createdAt: "2026-05-21T10:30:00Z",
+    reactions: [{ emoji: "👍", count: 3 }],
+  },
+  {
+    id: 6,
+    featureId: 1,
+    parentCommentId: 1,
+    // Resposta a outra reply (Will, id 4), mas threading shallow:
+    // parentCommentId aponta pro topo (Cristiano, id 1)
+    repliedToAuthor: "Will Carvalho",
+    body: "Boa Will! A waitlist abre semana que vem aqui mesmo nessa thread, fica de olho.",
+    authorName: "Cristiano (ConvertaFlow)",
+    authorInitial: "CB",
+    badge: "staff",
+    isOfficial: true,
+    isPinned: false,
+    createdAt: "2026-05-22T08:15:00Z",
+    reactions: [{ emoji: "❤️", count: 4 }],
+  },
+  // ── Reply ao Roberto sobre LGPD (id 3)
+  {
+    id: 7,
+    featureId: 1,
+    parentCommentId: 3,
+    repliedToAuthor: "Roberto Lima",
+    body: "Pergunta importante. Vamos respeitar sim — exclusão sob demanda via API e UI no painel do contato. LGPD-compliant por design.",
+    authorName: "Cristiano (ConvertaFlow)",
+    authorInitial: "CB",
+    badge: "staff",
+    isOfficial: true,
+    isPinned: false,
+    createdAt: "2026-05-22T09:00:00Z",
+    reactions: [
+      { emoji: "❤️", count: 7 },
+      { emoji: "👍", count: 5 },
+    ],
+  },
 ];
 
 export function getMockCommentsForFeature(featureId: number): MockComment[] {
+  // Retorna a lista plana (parents + replies misturados).
+  // O CommentThread monta a arvore agrupando por parentCommentId.
   return MOCK_COMMENTS.filter((c) => c.featureId === featureId).sort(
     (a, b) => {
-      // Pinned primeiro, depois mais antigos
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
+      // Pinned primeiro (apenas considera entre top-level)
+      const aTop = a.parentCommentId == null;
+      const bTop = b.parentCommentId == null;
+      if (aTop && bTop) {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+      }
       return (
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );

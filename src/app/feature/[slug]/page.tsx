@@ -181,7 +181,7 @@ export default async function FeaturePage({ params }: PageProps) {
               >
                 Comentários ({comments.length})
               </h2>
-              <CommentThread comments={comments} />
+              <CommentThread comments={comments} featureSlug={feature.slug} />
 
               {/* Editor: gate de permissão + min chars + min/max validation */}
               <div className="mt-4">

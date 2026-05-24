@@ -1,16 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { SignInButton, SignUpButton } from "@clerk/nextjs";
 import { X, Lock, Sparkles } from "lucide-react";
 import type { BlockReason } from "@/lib/permissions";
+import { redirectToLogin, redirectToSignup } from "@/lib/auth-redirect";
 
 /**
  * Modal que aparece quando usuario tenta uma acao que nao pode fazer.
  * Honestidade total: explica o que falta + oferece CTA correto.
  *
+ * Auth flow (ADR-029 — SSO unificado estilo Google):
+ *   CTAs "signin"/"signup" redirecionam pra app.convertaflow.com/login|register
+ *   com `?return_to=<url-atual>`, e o cookie compartilhado em `.convertaflow.com`
+ *   traz a sessao de volta. Sem modal Clerk inline.
+ *
  * Inspirado [[06 - Productlane]] (UX recuada) + [[05 - Frill.co]] (paywall claro).
- * Detalhes em [[ADRs]] #026.
+ * Detalhes em [[ADRs]] #026 + #029.
  */
 export function PermissionGateModal({
   reason,
@@ -20,6 +25,10 @@ export function PermissionGateModal({
   onClose: () => void;
 }) {
   if (!reason) return null;
+
+  const pending = reason.actionType
+    ? { type: reason.actionType }
+    : undefined;
 
   const renderCta = (cta: BlockReason["cta"], isPrimary: boolean) => {
     const baseClass = isPrimary
@@ -37,30 +46,32 @@ export function PermissionGateModal({
 
     if (cta.action === "signin") {
       return (
-        <SignInButton mode="modal">
-          <button
-            type="button"
-            className={baseClass}
-            style={isPrimary ? primaryStyle : secondaryStyle}
-            onClick={onClose}
-          >
-            {cta.label}
-          </button>
-        </SignInButton>
+        <button
+          type="button"
+          className={baseClass}
+          style={isPrimary ? primaryStyle : secondaryStyle}
+          onClick={() => {
+            onClose();
+            redirectToLogin({ pendingAction: pending });
+          }}
+        >
+          {cta.label}
+        </button>
       );
     }
     if (cta.action === "signup") {
       return (
-        <SignUpButton mode="modal">
-          <button
-            type="button"
-            className={baseClass}
-            style={isPrimary ? primaryStyle : secondaryStyle}
-            onClick={onClose}
-          >
-            {cta.label}
-          </button>
-        </SignUpButton>
+        <button
+          type="button"
+          className={baseClass}
+          style={isPrimary ? primaryStyle : secondaryStyle}
+          onClick={() => {
+            onClose();
+            redirectToSignup({ pendingAction: pending });
+          }}
+        >
+          {cta.label}
+        </button>
       );
     }
     if (cta.action === "upgrade" && cta.href) {
