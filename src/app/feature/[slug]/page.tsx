@@ -4,7 +4,10 @@ import type { Metadata } from "next";
 import { ChevronLeft, MessageCircle, Share2 } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { VoteButtonLarge } from "@/components/vote-button-large";
+import { VoteButtonInteractive } from "@/components/vote-button-interactive";
+import { CommentEditor } from "@/components/comment-editor";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { FeatureArticleLd } from "@/components/json-ld";
 import { FeatureSidePanel } from "@/components/feature-side-panel";
 import { CommentThread } from "@/components/comment-thread";
 import { CategoryIcon } from "@/components/category-icon";
@@ -58,6 +61,7 @@ export default async function FeaturePage({ params }: PageProps) {
       className="min-h-screen flex flex-col"
       style={{ background: "#faf8ff" }}
     >
+      <FeatureArticleLd feature={feature} />
       <Header activePath="/" />
 
       <main className="flex-1 mx-auto w-full max-w-6xl px-6 py-8">
@@ -98,7 +102,12 @@ export default async function FeaturePage({ params }: PageProps) {
           <section className="flex-1 min-w-0">
             {/* Cabeçalho da feature: vote + título */}
             <div className="flex items-start gap-4 mb-6">
-              <VoteButtonLarge feature={feature} />
+              <VoteButtonInteractive
+                featureSlug={feature.slug}
+                initialVoteCount={feature.voteCount}
+                initialHasVoted={feature.hasVoted}
+                variant="large"
+              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <CategoryIcon category={feature.category} size="sm" />
@@ -158,12 +167,10 @@ export default async function FeaturePage({ params }: PageProps) {
                 border: "1.5px solid var(--border-primary)",
               }}
             >
-              <p
-                className="text-[15px] leading-relaxed whitespace-pre-wrap"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {feature.description}
-              </p>
+              <MarkdownRenderer
+                content={feature.description}
+                variant="feature"
+              />
             </div>
 
             {/* Comentários */}
@@ -176,31 +183,9 @@ export default async function FeaturePage({ params }: PageProps) {
               </h2>
               <CommentThread comments={comments} />
 
-              {/* CTA de auth */}
-              <div
-                className="mt-4 rounded-[10px] p-4 text-center"
-                style={{
-                  background: "var(--surface-card)",
-                  border: "1.5px dashed var(--border-primary)",
-                }}
-              >
-                <p
-                  className="text-[13px] mb-3"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Entre na sua conta ConvertaFlow para comentar.
-                </p>
-                <a
-                  href="https://app.convertaflow.com/sign-in"
-                  className="inline-flex items-center gap-2 h-10 px-5 rounded-[10px] text-[14px] font-semibold text-white transition-all hover:brightness-110"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, var(--brand-primary) 0%, var(--brand-dark) 100%)",
-                    boxShadow: "var(--shadow-sm)",
-                  }}
-                >
-                  Entrar
-                </a>
+              {/* Editor: gate de permissão + min chars + min/max validation */}
+              <div className="mt-4">
+                <CommentEditor featureSlug={feature.slug} />
               </div>
             </section>
 

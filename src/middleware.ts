@@ -7,11 +7,12 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
  *
  * Detalhes em [[Auth e Multi-domain Clerk]] no Obsidian.
  */
+// Rotas /nova e /bug-reports/novo NÃO entram aqui — gate é in-page via
+// <PermissionGate> pra UX paywall melhor (visitante vê página com modal CTA,
+// não redirect 404). Apenas rotas que NUNCA fazem sentido pra visitante:
 const isProtectedRoute = createRouteMatcher([
-  "/nova(.*)",
   "/minhas-sugestoes(.*)",
   "/admin(.*)",
-  "/bug-reports/novo(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

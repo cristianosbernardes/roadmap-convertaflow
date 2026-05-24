@@ -1,12 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Search } from "lucide-react";
+import { HeaderAuth } from "@/components/header-auth";
 
 /**
  * Header global do roadmap.convertaflow.com.
  *
  * Estrutura espelhada da LP (ADR-024): logo + nav centro + dois CTAs direita.
  * Inter 800 -0.02em pra wordmark. Background branco translucido + backdrop-blur.
+ *
+ * Auth UI (ADR-026): UserButton quando logado, SignIn modal quando anonimo.
  *
  * Detalhes em [[Tokens Herdados do App e LP]] no Obsidian.
  */
@@ -78,6 +81,7 @@ export function Header({
             label="Changelog"
             active={activePath === "/changelog"}
           />
+          <NavLink href="/nova" label="Sugerir" />
         </nav>
 
         {/* Direita: search compacta + CTAs */}
@@ -105,30 +109,8 @@ export function Header({
             </kbd>
           </button>
 
-          {/* CTA secundário "Entrar" (estilo LP) */}
-          <a
-            href="https://app.convertaflow.com/sign-in"
-            className="hidden sm:inline-flex items-center h-10 px-4 rounded-[10px] text-[13px] font-semibold transition-opacity hover:opacity-80"
-            style={{
-              background: "var(--surface-low)",
-              color: "var(--text-primary)",
-            }}
-          >
-            Entrar
-          </a>
-
-          {/* CTA primário "Ir pro app" (gradient azul — LP style) */}
-          <a
-            href="https://app.convertaflow.com"
-            className="inline-flex items-center h-10 px-4 rounded-[10px] text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
-            style={{
-              background:
-                "linear-gradient(180deg, var(--brand-primary) 0%, var(--brand-dark) 100%)",
-              boxShadow: "var(--shadow-sm)",
-            }}
-          >
-            Ir pro app
-          </a>
+          {/* Auth: SignIn modal quando anonimo, UserButton + Ir pro app quando logado */}
+          <HeaderAuth />
         </div>
       </div>
     </header>

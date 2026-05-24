@@ -128,7 +128,7 @@ export function Footer() {
           >
             <span style={{ color: "var(--brand-primary)" }}>●</span> Roadmap
             público — versão{" "}
-            <span className="font-mono">0.4.0-lp-layout</span>
+            <span className="font-mono">0.6.0-pre-v1</span>
           </p>
         </div>
       </div>

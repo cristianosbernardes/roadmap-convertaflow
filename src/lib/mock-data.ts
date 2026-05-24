@@ -7,7 +7,7 @@
  * Conforme ADR-016 — mock-first decision.
  */
 
-import type { Feature, Tag } from "@/types/roadmap";
+import type { Feature } from "@/types/roadmap";
 
 /**
  * Campos opcionais ao escrever a feature mock — sao preenchidos com defaults

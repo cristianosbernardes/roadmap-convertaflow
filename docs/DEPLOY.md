@@ -1,10 +1,26 @@
 # Deploy — Roadmap ConvertaFlow
 
+## ✅ Status atual (2026-05-24)
+
+**LIVE em https://roadmap.convertaflow.com** — HTTP 200, SSL Let's Encrypt, SSO Clerk multi-domain funcionando.
+
+| Item | Status | Detalhe |
+|---|---|---|
+| Vercel project | ✅ Live | `roadmap-convertaflow` em `cristiano-bernardes-projects` (Hobby), região `gru1` |
+| Auto-deploy | ✅ Ativo | Push pra `main` → deploy automático |
+| Custom domain | ✅ Validado | `roadmap.convertaflow.com` |
+| DNS | ✅ Propagado | Cloudflare CNAME → `83891fa923f2271a.vercel-dns-017.com` (Proxy OFF) |
+| SSL | ✅ Emitido | Let's Encrypt, renovação automática |
+| Env vars | ✅ Configuradas | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` (Sensitive, Production + Preview) |
+| Clerk auth | ✅ Multi-domain | Subdomínio do primary `convertaflow.com` — autorizado por default (toggle Allowed Subdomains OFF) |
+
+Detalhes completos em [[ADRs]] #025 e [[Estado Atual]] no Obsidian.
+
 ## Plataforma: Vercel
 
 Hospedagem 100% Vercel free tier (Hobby plan). Sem VPS, sem container Docker.
 
-## Setup inicial (uma vez)
+## Setup inicial (uma vez) — JÁ EXECUTADO
 
 ### 1. Criar repo GitHub
 ```bash

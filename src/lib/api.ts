@@ -7,7 +7,7 @@
  * Auth: injeta o JWT do Clerk via interceptor quando user autenticado.
  * Endpoints públicos (listagem) funcionam sem auth.
  */
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosInstance } from "axios";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://api.convertaflow.com";
@@ -42,8 +42,11 @@ export class ApiError extends Error {
 export function createApiClient(
   getToken?: () => Promise<string | null>
 ): AxiosInstance {
+  // CONTRATO CONFIRMADO (2026-05-24) pela outra instancia: backend serve em
+  // /roadmap/* (SEM /api/v1/). Detalhes em [[Endpoints API]] §"Status atual
+  // de implementacao". Sprint 1+2 sao 8 GET endpoints LIVE em prod.
   const instance = axios.create({
-    baseURL: `${API_BASE_URL}/api/v1`,
+    baseURL: `${API_BASE_URL}/roadmap`,
     timeout: 15000,
     headers: { "Content-Type": "application/json" },
   });

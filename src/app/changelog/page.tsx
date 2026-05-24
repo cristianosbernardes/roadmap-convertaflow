@@ -5,6 +5,7 @@ import { ptBR } from "date-fns/locale";
 import { Bell, Copy } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { MOCK_CHANGELOG, type MockChangelogEntry } from "@/lib/mock-data";
 
 export const revalidate = 60;
@@ -167,13 +168,9 @@ function ChangelogItem({ entry }: { entry: MockChangelogEntry }) {
           {entry.title}
         </h2>
 
-        {/* Markdown bruto renderizado — render minimo sem react-markdown por enquanto */}
-        <div
-          className="prose-sm leading-relaxed whitespace-pre-wrap text-[14px]"
-          style={{ color: "var(--text-primary)" }}
-        >
-          {entry.bodyMarkdown}
-        </div>
+        {/* Markdown rico (react-markdown + remark-gfm) — ADR-024 Sprint A */}
+        <MarkdownRenderer content={entry.bodyMarkdown} variant="default" />
+
 
         {entry.relatedFeatureSlugs.length > 0 && (
           <div

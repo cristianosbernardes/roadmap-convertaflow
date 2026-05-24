@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ptBR } from "@clerk/localizations";
+import { Toaster } from "@/components/ui/sonner";
+import { SoftwareApplicationLd } from "@/components/json-ld";
 import "./globals.css";
 
 // Fonte canonica do ecossistema ConvertaFlow (app + LP + roadmap).
@@ -71,7 +73,13 @@ export default function RootLayout({
   return (
     <ClerkProvider localization={ptBR}>
       <html lang="pt-BR" suppressHydrationWarning>
-        <body className={`${inter.variable} antialiased`}>{children}</body>
+        <head>
+          <SoftwareApplicationLd />
+        </head>
+        <body className={`${inter.variable} antialiased`}>
+          {children}
+          <Toaster position="bottom-right" richColors />
+        </body>
       </html>
     </ClerkProvider>
   );

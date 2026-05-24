@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ChevronUp, MessageCircle } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import type { Feature } from "@/types/roadmap";
 import { CategoryIcon } from "@/components/category-icon";
 import { StatusBadge } from "@/components/status-badge";
+import { VoteButtonInteractive } from "@/components/vote-button-interactive";
 import { CATEGORIES } from "@/lib/constants";
 
 /**
@@ -65,27 +66,13 @@ export function FeatureCard({ feature }: { feature: Feature }) {
           </div>
         </div>
 
-        {/* Vote button */}
-        <div
-          className="flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-[10px] transition-colors flex-shrink-0"
-          style={{
-            border: feature.hasVoted
-              ? "1.5px solid var(--brand-primary)"
-              : "1.5px solid var(--border-primary)",
-            background: feature.hasVoted
-              ? "var(--info-bg)"
-              : "var(--surface-card)",
-            color: feature.hasVoted
-              ? "var(--brand-primary)"
-              : "var(--text-primary)",
-            minWidth: "56px",
-          }}
-        >
-          <ChevronUp className="h-4 w-4" strokeWidth={2.5} />
-          <span className="text-[14px] font-bold tabular-nums leading-none">
-            {feature.voteCount}
-          </span>
-        </div>
+        {/* Vote button interativo (cookie anônimo + rate limit) */}
+        <VoteButtonInteractive
+          featureSlug={feature.slug}
+          initialVoteCount={feature.voteCount}
+          initialHasVoted={feature.hasVoted}
+          variant="card"
+        />
       </article>
     </Link>
   );

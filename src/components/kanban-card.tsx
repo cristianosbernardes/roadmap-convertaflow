@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ChevronUp, MessageCircle } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import type { Feature } from "@/types/roadmap";
 import { CategoryIcon } from "@/components/category-icon";
+import { VoteButtonInteractive } from "@/components/vote-button-interactive";
 
 /**
  * Card compacto pro kanban /roadmap.
@@ -42,26 +43,12 @@ export function KanbanCard({ feature }: { feature: Feature }) {
           </div>
         </div>
 
-        <div
-          className="flex flex-col items-center justify-center px-2 py-1 rounded-[8px] flex-shrink-0"
-          style={{
-            border: feature.hasVoted
-              ? "1.5px solid var(--brand-primary)"
-              : "1.5px solid var(--border-secondary)",
-            background: feature.hasVoted
-              ? "var(--info-bg)"
-              : "var(--surface-low)",
-            color: feature.hasVoted
-              ? "var(--brand-primary)"
-              : "var(--text-primary)",
-            minWidth: "44px",
-          }}
-        >
-          <ChevronUp className="h-3 w-3" strokeWidth={2.5} />
-          <span className="text-[12px] font-bold tabular-nums leading-none">
-            {feature.voteCount}
-          </span>
-        </div>
+        <VoteButtonInteractive
+          featureSlug={feature.slug}
+          initialVoteCount={feature.voteCount}
+          initialHasVoted={feature.hasVoted}
+          variant="card"
+        />
       </article>
     </Link>
   );
