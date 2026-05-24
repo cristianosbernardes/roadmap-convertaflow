@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ChevronLeft, MessageCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { VoteButtonInteractive } from "@/components/vote-button-interactive";
@@ -68,36 +68,43 @@ export default async function FeaturePage({ params }: PageProps) {
       <Header activePath="/" />
 
       <main className="flex-1 mx-auto w-full max-w-6xl px-6 py-8">
-        {/* Breadcrumb */}
-        <nav
-          className="flex items-center gap-1.5 text-[12px] mb-6"
-          style={{ color: "var(--text-muted)" }}
-        >
-          <Link href="/" className="hover:underline">
-            Roadmap
-          </Link>
-          <span>›</span>
+        {/* Mobile breadcrumb — back link estilo iOS/Productlane */}
+        <div className="md:hidden mb-4">
           <Link
             href={`/categoria/${category.slug}`}
-            className="hover:underline"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--text-muted)] hover:text-[var(--brand-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-base)] rounded-[7px] -mx-1 px-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            {category.label}
+          </Link>
+        </div>
+
+        {/* Desktop breadcrumb — caminho completo */}
+        <nav
+          aria-label="Você está em"
+          className="hidden md:flex items-center gap-2 text-[13px] mb-6 text-[var(--text-muted)]"
+        >
+          <Link
+            href="/"
+            className="hover:text-[var(--brand-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-base)] rounded-[7px] px-1"
+          >
+            Roadmap
+          </Link>
+          <ChevronRight className="h-3.5 w-3.5 opacity-50" />
+          <Link
+            href={`/categoria/${category.slug}`}
+            className="hover:text-[var(--brand-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-base)] rounded-[7px] px-1"
           >
             {category.label}
           </Link>
-          <span>›</span>
-          <span style={{ color: "var(--text-secondary)" }}>
+          <ChevronRight className="h-3.5 w-3.5 opacity-50" />
+          <span
+            className="text-[var(--text-primary)] font-medium truncate max-w-[400px]"
+            title={feature.title}
+          >
             {feature.title}
           </span>
         </nav>
-
-        {/* Back link mobile */}
-        <Link
-          href="/"
-          className="lg:hidden inline-flex items-center gap-1 text-[13px] mb-4 hover:underline"
-          style={{ color: "var(--brand-primary)" }}
-        >
-          <ChevronLeft className="h-3.5 w-3.5" />
-          Voltar
-        </Link>
 
         {/* Grid principal: conteudo + side panel */}
         <div className="flex flex-col lg:flex-row gap-8">

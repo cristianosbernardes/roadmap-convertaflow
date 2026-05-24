@@ -125,7 +125,10 @@ export function CommentThread({
                 <button
                   type="button"
                   onClick={() => toggleCollapse(comment.id)}
-                  className="inline-flex items-center gap-1 mt-3 h-7 px-2 -ml-2 rounded-[7px] text-[12px] font-medium transition-colors hover:bg-[var(--surface-low)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
+                  // S-C-10 (Auditoria UX-UI v2 — D.3 / Apple HIG / WCAG 2.5.5):
+                  // touch target >= 44px no mobile (max-md:min-h-[44px]).
+                  // Desktop mantem h-7 (28px) — sem regressao visual.
+                  className="inline-flex items-center gap-1 mt-3 h-7 max-md:min-h-[44px] px-2 -ml-2 rounded-[7px] text-[12px] font-medium transition-colors hover:bg-[var(--surface-low)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
                   style={{ color: "var(--brand-primary)" }}
                 >
                   {isCollapsed ? (
@@ -314,7 +317,10 @@ function CommentBody({
         <button
           type="button"
           onClick={onReplyClick}
-          className="inline-flex items-center gap-1 h-8 px-2 rounded-[7px] text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
+          // S-C-10 (Auditoria UX-UI v2 — D.3 / Apple HIG / WCAG 2.5.5):
+          // touch target >= 44px no mobile (max-md:min-h-[44px]).
+          // Desktop mantem h-8 (32px) — sem regressao visual.
+          className="inline-flex items-center gap-1 h-8 max-md:min-h-[44px] px-2 rounded-[7px] text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
           style={{
             color: isReplying
               ? "var(--brand-primary)"
@@ -350,7 +356,10 @@ function CommentBody({
         {comment.reactions.length > 0 && (
           <button
             type="button"
-            className="text-[12px] px-2 h-7 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
+            // S-C-10 (Auditoria UX-UI v2 — D.3 / Apple HIG / WCAG 2.5.5):
+            // touch target >= 44px no mobile (max-md:min-h-[44px]).
+            // Desktop mantem h-7 (28px) — sem regressao visual.
+            className="text-[12px] px-2 h-7 max-md:min-h-[44px] rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
             style={{
               color: "var(--text-muted)",
               border: "1px dashed var(--border-secondary)",
