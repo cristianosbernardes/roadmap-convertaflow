@@ -2,14 +2,23 @@ import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import type { Feature } from "@/types/roadmap";
 import { CategoryIcon } from "@/components/category-icon";
+import { TrendingBadge } from "@/components/trending-badge";
 import { VoteButtonInteractive } from "@/components/vote-button-interactive";
 
 /**
  * Card compacto pro kanban /roadmap.
  * Mais denso que o FeatureCard da home — sem badges de status (status é a coluna).
  * Inspirado [[01 - ZDG (Upvoty white-label)]] §6.
+ *
+ * Prop `isTrending` (S-D-11): badge "Em alta" no tamanho xs (kanban e denso).
  */
-export function KanbanCard({ feature }: { feature: Feature }) {
+export function KanbanCard({
+  feature,
+  isTrending = false,
+}: {
+  feature: Feature;
+  isTrending?: boolean;
+}) {
   return (
     <Link
       href={`/feature/${feature.slug}`}
@@ -33,6 +42,7 @@ export function KanbanCard({ feature }: { feature: Feature }) {
             {feature.title}
           </h3>
           <div className="flex items-center gap-2 mt-1">
+            {isTrending && <TrendingBadge size="xs" />}
             <span
               className="inline-flex items-center gap-0.5 text-[11px]"
               style={{ color: "var(--text-muted)" }}

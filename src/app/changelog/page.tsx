@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Bell, Copy } from "lucide-react";
+import { Bell, Copy, Rss } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
@@ -16,6 +16,11 @@ export const metadata: Metadata = {
   title: "Changelog",
   description:
     "Histórico de releases do ConvertaFlow — o que foi entregue e quando.",
+  alternates: {
+    types: {
+      "application/rss+xml": "/changelog/rss.xml",
+    },
+  },
 };
 
 /**
@@ -66,18 +71,36 @@ export default function ChangelogPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 h-10 px-4 rounded-[10px] text-[13px] font-semibold text-white transition-all hover:brightness-110"
-            style={{
-              background:
-                "linear-gradient(180deg, var(--brand-primary) 0%, var(--brand-dark) 100%)",
-              boxShadow: "var(--shadow-sm)",
-            }}
-          >
-            <Bell className="h-4 w-4" />
-            Inscrever-se em atualizações
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <a
+              href="/changelog/rss.xml"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 h-10 px-3 rounded-[10px] text-[13px] font-semibold transition-colors hover:brightness-105"
+              style={{
+                background: "var(--surface-card)",
+                color: "var(--text-secondary)",
+                border: "1.5px solid var(--border-primary)",
+              }}
+              title="Assinar feed RSS do changelog"
+              aria-label="Assinar feed RSS do changelog"
+            >
+              <Rss className="h-4 w-4" />
+              RSS
+            </a>
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 h-10 px-4 rounded-[10px] text-[13px] font-semibold text-white transition-all hover:brightness-110"
+              style={{
+                background:
+                  "linear-gradient(180deg, var(--brand-primary) 0%, var(--brand-dark) 100%)",
+                boxShadow: "var(--shadow-sm)",
+              }}
+            >
+              <Bell className="h-4 w-4" />
+              Inscrever-se em atualizações
+            </button>
+          </div>
         </section>
 
         {/* Lista de releases */}

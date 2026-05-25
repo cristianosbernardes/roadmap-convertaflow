@@ -14,7 +14,11 @@ import {
   getMockFeaturesByStatus,
   MOCK_FEATURES,
 } from "@/lib/mock-data";
-import { parseSortParam, sortFeatures } from "@/lib/sort";
+import {
+  getTrendingFeatures,
+  parseSortParam,
+  sortFeatures,
+} from "@/lib/sort";
 import { parseStatusParam } from "@/lib/status-filter";
 
 interface HomePageProps {
@@ -52,6 +56,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
   const sort = parseSortParam(params.sort);
   const statusFilter = parseStatusParam(params.status);
+
+  // Top 3 features "Em alta" pelo trendingScore (S-D-11). Calculado UMA vez
+  // aqui no SSR e propagado pros cards via prop — evita recomputar em cada
+  // render e centraliza a regra (filtro de status + threshold + topN).
+  const trendingIds = getTrendingFeatures(MOCK_FEATURES, 3);
 
   // Modo filtrado (status != null): lista plana, ordenada pelo `sort` atual.
   // Modo agrupado (status == null): secoes por status canonico, cada uma
@@ -153,7 +162,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                     </div>
                     <div className="flex flex-col gap-2.5">
                       {filteredFeatures.map((feature) => (
-                        <FeatureCard key={feature.id} feature={feature} />
+                        <FeatureCard
+                          key={feature.id}
+                          feature={feature}
+                          isTrending={trendingIds.has(feature.id)}
+                        />
                       ))}
                     </div>
                   </div>
@@ -197,7 +210,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                       {/* Lista de cards */}
                       <div className="flex flex-col gap-2.5">
                         {features.map((feature) => (
-                          <FeatureCard key={feature.id} feature={feature} />
+                          <FeatureCard
+                            key={feature.id}
+                            feature={feature}
+                            isTrending={trendingIds.has(feature.id)}
+                          />
                         ))}
                       </div>
                     </div>

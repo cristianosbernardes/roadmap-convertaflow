@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { HeaderAuth } from "@/components/header-auth";
 import { MobileNav } from "@/components/mobile-nav";
 import { SearchTrigger } from "@/components/search-trigger";
+import { VotedFeaturesPopover } from "@/components/voted-features-popover";
 import {
   getActivePathFromPath,
   type ActivePath,
@@ -116,6 +117,9 @@ export function Header({
         <div className="flex items-center gap-2">
           {/* Trigger client-side do modal Cmd+K (S-C-05). */}
           <SearchTrigger />
+
+          {/* Histórico "Você votou em" (S-D-13). Esconde se count===0. */}
+          <VotedFeaturesPopover />
 
           {/* Auth: SignIn modal quando anonimo, UserButton + Ir pro app quando logado */}
           <HeaderAuth />

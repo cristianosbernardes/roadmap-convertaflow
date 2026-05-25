@@ -6,7 +6,8 @@ import { Footer } from "@/components/footer";
 import { KanbanCard } from "@/components/kanban-card";
 import { KanbanColumnSkeleton } from "@/components/skeletons";
 import { STATUSES, type StatusSlug } from "@/lib/constants";
-import { getMockFeaturesByStatus } from "@/lib/mock-data";
+import { getMockFeaturesByStatus, MOCK_FEATURES } from "@/lib/mock-data";
+import { getTrendingFeatures } from "@/lib/sort";
 
 export const revalidate = 60;
 
@@ -60,6 +61,12 @@ export default function RoadmapPage() {
       .flatMap((s) => getMockFeaturesByStatus(s))
       .sort((a, b) => b.voteCount - a.voteCount),
   }));
+
+  // Top 3 trending (S-D-11). Calculado uma vez no SSR. Como o filtro interno
+  // de `getTrendingFeatures` restringe a sob_analise/planejado, no kanban
+  // o badge só aparecerá na coluna "Sob análise & Planejados" — proposital:
+  // "Em desenvolvimento" e "Beta privado" já comunicam movimento via coluna.
+  const trendingIds = getTrendingFeatures(MOCK_FEATURES, 3);
 
   return (
     <div
@@ -164,7 +171,10 @@ export default function RoadmapPage() {
                   <ul className="flex flex-col gap-2">
                     {col.features.map((f) => (
                       <li key={f.id}>
-                        <KanbanCard feature={f} />
+                        <KanbanCard
+                          feature={f}
+                          isTrending={trendingIds.has(f.id)}
+                        />
                       </li>
                     ))}
                   </ul>

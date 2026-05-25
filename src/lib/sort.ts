@@ -61,6 +61,58 @@ export function trendingScore(feature: Feature, now: number = Date.now()): numbe
   return score / Math.pow(ageHours + 2, 1.5);
 }
 
+// ─── TRENDING BADGE (S-D-11) ──────────────────────────────────────────
+
+/**
+ * Status considerados elegíveis para o badge "Em alta".
+ *
+ * Critério editorial: trending só faz sentido pras features que AINDA podem
+ * crescer (acumular votos pra mudar nossa fila de prioridade). Em desenvolvimento
+ * e beta_privado já estao em movimento; concluido/pausado/nao_sera_feito sao
+ * terminais — destacar trending neles confundiria o leitor ("ja decidimos").
+ *
+ * Decisao tomada em S-D-11. Se mudarmos a politica, ajustar aqui.
+ */
+const TRENDING_ELIGIBLE_STATUSES = new Set<Feature["status"]>([
+  "sob_analise",
+  "planejado",
+]);
+
+/**
+ * Score mínimo pra entrar no top trending. Evita "Em alta" em feature recém
+ * publicada com 1 voto — mesmo que matematicamente esteja no topo do decay.
+ * Valor calibrado com o mock atual: features sob_analise mais frescas ficam
+ * na faixa 0.01–0.03; threshold 0.005 corta apenas casos degenerados.
+ */
+const TRENDING_MIN_SCORE = 0.005;
+
+/**
+ * Identifica top N features pelo `trendingScore` para exibir badge "Em alta"
+ * nos cards. Retorna `Set<number>` pra check O(1) no render.
+ *
+ * Regras:
+ * 1. Filtra apenas status ∈ `TRENDING_ELIGIBLE_STATUSES`
+ * 2. Ordena por `trendingScore` desc
+ * 3. Aplica `TRENDING_MIN_SCORE` (descarta scores muito baixos)
+ * 4. Pega top N (default 3 — suficiente pra home, sem poluir)
+ *
+ * Calculado UMA VEZ no Server Component e passado pros cards via prop.
+ */
+export function getTrendingFeatures(
+  features: Feature[],
+  topN = 3,
+  now: number = Date.now(),
+): Set<number> {
+  const ranked = features
+    .filter((f) => TRENDING_ELIGIBLE_STATUSES.has(f.status))
+    .map((f) => ({ id: f.id, score: trendingScore(f, now) }))
+    .filter((s) => s.score >= TRENDING_MIN_SCORE)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topN);
+
+  return new Set(ranked.map((s) => s.id));
+}
+
 /**
  * Retorna NOVA lista ordenada (nao muta o input).
  * `sort` invalido cai em DEFAULT_SORT.

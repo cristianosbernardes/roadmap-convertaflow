@@ -57,6 +57,25 @@ export function getLocalVote(featureSlug: string): VoteType | null {
 }
 
 /**
+ * Lista TODOS os votos locais agrupados por slug → tipo.
+ * Usado pelo histórico "Você votou em" no header (S-D-13).
+ *
+ * Server-side retorna {} (sem localStorage).
+ * Quando backend chegar (Sprint 3), tem que existir endpoint paralelo
+ * `GET /api/v1/roadmap/me/votes` pra sincronizar cross-device.
+ */
+export function getAllLocalVotes(): Record<string, VoteType> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(VOTES_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as Record<string, VoteType>;
+  } catch {
+    return {};
+  }
+}
+
+/**
  * Aplica um voto local com lógica mutex:
  *   - Se atual === tipo solicitado: REMOVE (toggle off)
  *   - Se atual !== tipo solicitado (ou null): SETA o novo tipo

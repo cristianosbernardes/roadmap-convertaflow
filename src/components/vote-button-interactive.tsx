@@ -15,6 +15,7 @@ import {
   getOrCreateVoterCookie,
   type VoteType,
 } from "@/lib/voter-cookie";
+import { fireVoteConfetti } from "@/lib/celebrate";
 
 /**
  * Vote button interativo híbrido — modelo ZDG (ADR-026 + ADR-034 + S-D-01).
@@ -84,6 +85,12 @@ export function VoteButtonInteractive({
     e.preventDefault();
     e.stopPropagation();
 
+    // Captura rect ANTES de qualquer await/setState — currentTarget é null
+    // depois do handler React (event pooling-like behavior em delegação).
+    const buttonRect = (
+      e.currentTarget as HTMLElement
+    ).getBoundingClientRect();
+
     const isAdding = vote !== type;
     if (isAdding) {
       const { canVote, retryAfterSeconds, reason } = checkVoteRateLimit();
@@ -112,6 +119,10 @@ export function VoteButtonInteractive({
         "Voto positivo registrado",
         "Obrigado por sinalizar interesse nesta feature."
       );
+      // Confetti sutil (1x por sessão) — ancorado no botão clicado.
+      // NÃO dispara em vote negativo, remove vote, ou após rate limit
+      // (early return acima já bloqueou esses caminhos).
+      fireVoteConfetti(buttonRect);
     } else if (newState === "oppose") {
       toastSuccess(
         "Sinalização registrada",

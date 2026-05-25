@@ -3,6 +3,7 @@ import { MessageCircle } from "lucide-react";
 import type { Feature } from "@/types/roadmap";
 import { CategoryIcon } from "@/components/category-icon";
 import { StatusBadge } from "@/components/status-badge";
+import { TrendingBadge } from "@/components/trending-badge";
 import { VoteButtonInteractive } from "@/components/vote-button-interactive";
 import { CATEGORIES } from "@/lib/constants";
 
@@ -12,10 +13,20 @@ import { CATEGORIES } from "@/lib/constants";
  *
  * Anatomia (esquerda → direita):
  *   - Icone de categoria colorido (caixa 40x40)
- *   - Conteudo: titulo + descricao 1 linha + meta (status badge, comments, tags)
+ *   - Conteudo: titulo + descricao 1 linha + meta (status badge, trending?, comments, tags)
  *   - Vote button vertical (chevron + contador)
+ *
+ * Prop `isTrending`: quando true, renderiza <TrendingBadge> ao lado do StatusBadge.
+ * Calculo de "quem e trending" e feito no Server Component (page.tsx) via
+ * `getTrendingFeatures()` — card so consome o boolean.
  */
-export function FeatureCard({ feature }: { feature: Feature }) {
+export function FeatureCard({
+  feature,
+  isTrending = false,
+}: {
+  feature: Feature;
+  isTrending?: boolean;
+}) {
   const category = CATEGORIES[feature.category];
 
   return (
@@ -50,6 +61,7 @@ export function FeatureCard({ feature }: { feature: Feature }) {
           </p>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <StatusBadge status={feature.status} />
+            {isTrending && <TrendingBadge size="sm" />}
             <span
               className="inline-flex items-center gap-1 text-[12px]"
               style={{ color: "var(--text-muted)" }}
