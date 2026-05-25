@@ -8,6 +8,7 @@ import {
   Share2,
   Twitter,
   Smartphone,
+  TrendingUp,
 } from "lucide-react";
 import { toastSuccess, toastError } from "@/lib/toast-presets";
 
@@ -37,6 +38,13 @@ export interface ShareButtonProps {
   title: string;
   /** Resumo opcional (preferido pelo Web Share API quando presente). */
   summary?: string;
+  /**
+   * Quantidade de votos atual da feature (opcional). Quando >= 1, ativa a
+   * variante "social proof": as opções WhatsApp/X incluem o número de votos
+   * no texto compartilhado e uma opção dedicada "Compartilhar com voto"
+   * aparece no topo do menu para destacar o pedido de voto.
+   */
+  voteCount?: number;
   /** Classe extra no wrapper (opcional). */
   className?: string;
 }
@@ -44,6 +52,8 @@ export interface ShareButtonProps {
 interface ShareItem {
   key: string;
   label: string;
+  /** Texto auxiliar exibido abaixo do label (ex.: "Inclui 42 votos"). */
+  hint?: string;
   icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
   onSelect: () => void | Promise<void>;
 }
@@ -52,8 +62,15 @@ export function ShareButton({
   url,
   title,
   summary,
+  voteCount,
   className,
 }: ShareButtonProps) {
+  // Só usa a variante "com voto" quando tem pelo menos 1 voto — abaixo disso
+  // o apelo social fica fraco ("já tem 0 votos" soa estranho).
+  const hasVotes = typeof voteCount === "number" && voteCount >= 1;
+  const votesLabel = hasVotes
+    ? `${voteCount} ${voteCount === 1 ? "voto" : "votos"}`
+    : null;
   const [open, setOpen] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -123,18 +140,33 @@ export function ShareButton({
   );
 
   const handleWhatsApp = useCallback(() => {
-    const text = `Olha essa feature do roadmap ConvertaFlow: ${title}\n${url}`;
+    const text = hasVotes
+      ? `Olha essa feature do roadmap ConvertaFlow (${votesLabel}): ${title}\nMe ajude a votar: ${url}`
+      : `Olha essa feature do roadmap ConvertaFlow: ${title}\n${url}`;
     openExternal(`https://wa.me/?text=${encodeURIComponent(text)}`);
-  }, [openExternal, title, url]);
+  }, [hasVotes, openExternal, title, url, votesLabel]);
 
   const handleTwitter = useCallback(() => {
-    const text = `${title} — via @ConvertaFlow`;
+    const text = hasVotes
+      ? `${title} já tem ${votesLabel} no roadmap @ConvertaFlow. Vote:`
+      : `${title} — via @ConvertaFlow`;
     openExternal(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(
         text,
       )}&url=${encodeURIComponent(url)}`,
     );
-  }, [openExternal, title, url]);
+  }, [hasVotes, openExternal, title, url, votesLabel]);
+
+  /**
+   * Variante dedicada "com voto": força inclusão do contador mesmo se no
+   * futuro decidirmos baixar o gatilho de hasVotes. Usa WhatsApp como canal
+   * default por ser o mais ativo no público BR. Item só aparece quando
+   * hasVotes === true (ver montagem de `items` abaixo).
+   */
+  const handleShareWithVote = useCallback(() => {
+    const text = `Olha essa feature do roadmap ConvertaFlow (${votesLabel}): ${title}\nMe ajude a votar: ${url}`;
+    openExternal(`https://wa.me/?text=${encodeURIComponent(text)}`);
+  }, [openExternal, title, url, votesLabel]);
 
   const handleLinkedIn = useCallback(() => {
     openExternal(
@@ -162,6 +194,17 @@ export function ShareButton({
   }, [summary, title, url]);
 
   const items: ShareItem[] = [
+    ...(hasVotes
+      ? [
+          {
+            key: "with-vote",
+            label: "Compartilhar com voto",
+            hint: `Inclui ${votesLabel} no texto`,
+            icon: TrendingUp,
+            onSelect: handleShareWithVote,
+          },
+        ]
+      : []),
     ...(canNativeShare
       ? [
           {
@@ -181,12 +224,14 @@ export function ShareButton({
     {
       key: "whatsapp",
       label: "WhatsApp",
+      hint: hasVotes ? `Inclui ${votesLabel} no preview` : undefined,
       icon: MessageCircle,
       onSelect: handleWhatsApp,
     },
     {
       key: "twitter",
       label: "X (Twitter)",
+      hint: hasVotes ? `Inclui ${votesLabel} no preview` : undefined,
       icon: Twitter,
       onSelect: handleTwitter,
     },
@@ -238,6 +283,7 @@ export function ShareButton({
           <ul className="flex flex-col gap-0.5">
             {items.map((item) => {
               const Icon = item.icon;
+              const hasHint = Boolean(item.hint);
               return (
                 <li key={item.key}>
                   <button
@@ -246,7 +292,9 @@ export function ShareButton({
                     onClick={() => {
                       void item.onSelect();
                     }}
-                    className="w-full inline-flex items-center gap-2 h-10 px-2.5 text-[13px] text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
+                    className={`w-full inline-flex items-center gap-2 ${
+                      hasHint ? "min-h-10 py-1.5" : "h-10"
+                    } px-2.5 text-[13px] text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1`}
                     style={{
                       borderRadius: "7px",
                       background: "transparent",
@@ -273,7 +321,17 @@ export function ShareButton({
                     }}
                   >
                     <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                    <span className="flex-1 truncate">{item.label}</span>
+                    <span className="flex-1 min-w-0 flex flex-col">
+                      <span className="truncate">{item.label}</span>
+                      {hasHint ? (
+                        <span
+                          className="text-[11px] truncate"
+                          style={{ color: "var(--text-muted)" }}
+                        >
+                          {item.hint}
+                        </span>
+                      ) : null}
+                    </span>
                   </button>
                 </li>
               );

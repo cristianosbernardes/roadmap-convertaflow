@@ -3,6 +3,7 @@ import { ptBR } from "date-fns/locale";
 import type { Feature } from "@/types/roadmap";
 import { CategoryIcon } from "@/components/category-icon";
 import { StatusBadge } from "@/components/status-badge";
+import { SubscribeButton } from "@/components/subscribe-button";
 import { CATEGORIES } from "@/lib/constants";
 
 /**
@@ -23,6 +24,12 @@ export function FeatureSidePanel({ feature }: { feature: Feature }) {
 
   return (
     <div className="flex flex-col gap-4 w-full lg:w-[280px] flex-shrink-0">
+      {/* CTA "Receber atualizações" (S-D-15) — topo da sidebar pra primazia
+          visual; ação primária de captação antes dos metadados.
+          Mock-only no momento (localStorage); Sprint 3 vai pra
+          POST /api/v1/roadmap/me/subscriptions com double opt-in. */}
+      <SubscribeButton featureSlug={feature.slug} />
+
       {/* Metadata card */}
       <div
         className="rounded-[10px] p-4 flex flex-col gap-3.5"

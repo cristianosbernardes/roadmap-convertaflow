@@ -133,7 +133,7 @@ export function Footer() {
           </p>
           <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
             <span style={{ color: "var(--brand-primary)" }}>●</span> Roadmap
-            público — versão <span className="font-mono">0.7.5</span>
+            público — versão <span className="font-mono">0.8.0</span>
           </p>
         </div>
       </div>

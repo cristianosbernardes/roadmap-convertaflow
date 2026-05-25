@@ -14,10 +14,10 @@ import { CommentThread } from "@/components/comment-thread";
 import { CommentsThreadSkeleton } from "@/components/skeletons";
 import { CategoryIcon } from "@/components/category-icon";
 import { ShareButton } from "@/components/share-button";
+import { RelatedFeatures } from "@/components/related-features";
 import {
   getMockFeatureBySlug,
   getMockCommentsForFeature,
-  getRelatedMockFeatures,
 } from "@/lib/mock-data";
 import { CATEGORIES } from "@/lib/constants";
 
@@ -56,7 +56,6 @@ export default async function FeaturePage({ params }: PageProps) {
   }
 
   const comments = getMockCommentsForFeature(feature.id);
-  const related = getRelatedMockFeatures(feature, 3);
   const category = CATEGORIES[feature.category];
 
   return (
@@ -146,6 +145,7 @@ export default async function FeaturePage({ params }: PageProps) {
                     }/feature/${feature.slug}`}
                     title={feature.title}
                     summary={feature.descriptionShort}
+                    voteCount={feature.voteCount}
                   />
 
                   <a
@@ -197,45 +197,8 @@ export default async function FeaturePage({ params }: PageProps) {
               </div>
             </section>
 
-            {/* Features relacionadas */}
-            {related.length > 0 && (
-              <section className="mt-12">
-                <h2
-                  className="text-[14px] font-semibold uppercase tracking-wider mb-3"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  Relacionadas em {category.label}
-                </h2>
-                <ul className="flex flex-col gap-2">
-                  {related.map((rel) => (
-                    <li key={rel.id}>
-                      <Link
-                        href={`/feature/${rel.slug}`}
-                        className="flex items-center gap-3 p-3 rounded-[10px] transition-colors hover:bg-[var(--surface-low)]"
-                        style={{
-                          background: "var(--surface-card)",
-                          border: "1.5px solid var(--border-secondary)",
-                        }}
-                      >
-                        <CategoryIcon category={rel.category} size="sm" />
-                        <span
-                          className="flex-1 text-[13px] truncate"
-                          style={{ color: "var(--text-primary)" }}
-                        >
-                          {rel.title}
-                        </span>
-                        <span
-                          className="text-[12px] tabular-nums"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          ▲ {rel.voteCount}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
+            {/* Features relacionadas (S-D-14) */}
+            <RelatedFeatures currentFeature={feature} />
           </section>
 
           {/* Side panel direita */}
