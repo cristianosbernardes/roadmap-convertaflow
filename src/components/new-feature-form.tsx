@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, AlertCircle, Send, Lock, Info } from "lucide-react";
-import { toast } from "sonner";
+import { toastError, toastSuccessLong } from "@/lib/toast-presets";
 import { useUserPermissions } from "@/hooks/use-user-permissions";
 import {
   canSuggestFeature,
@@ -79,22 +79,21 @@ export function NewFeatureForm() {
 
     // Honeypot check (mock client-side; backend valida tb)
     if (honeypot !== "") {
-      toast.error("Erro ao enviar", { description: "Tente de novo." });
+      toastError("Erro ao enviar", "Tente de novo.");
       return;
     }
     // Time-trap (mock: rejeita se <2s)
     if (Date.now() - formRenderedAt < 2000) {
-      toast.error("Aguarde um momento antes de enviar.");
+      toastError("Aguarde um momento antes de enviar.");
       return;
     }
 
     setSubmitting(true);
     setTimeout(() => {
-      toast.success("Sugestão enviada", {
-        description:
-          "Está em moderação. Você recebe um email quando aprovada.",
-        duration: 5000,
-      });
+      toastSuccessLong(
+        "Sugestão enviada",
+        "Está em moderação. Você recebe um email quando aprovada."
+      );
       setSubmitting(false);
       router.push("/");
     }, 800);

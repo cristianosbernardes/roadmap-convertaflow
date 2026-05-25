@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
-import { toast } from "sonner";
+import { toastSuccess, toastError } from "@/lib/toast-presets";
 import {
   Tooltip,
   TooltipContent,
@@ -88,12 +88,12 @@ export function VoteButtonInteractive({
     if (isAdding) {
       const { canVote, retryAfterSeconds, reason } = checkVoteRateLimit();
       if (!canVote) {
-        toast.error(reason ?? "Aguarde antes de votar de novo", {
-          description: retryAfterSeconds
+        toastError(
+          reason ?? "Aguarde antes de votar de novo",
+          retryAfterSeconds
             ? `Tente em ${formatRetry(retryAfterSeconds)}`
-            : undefined,
-          duration: 4000,
-        });
+            : undefined
+        );
         return;
       }
     }
@@ -108,16 +108,15 @@ export function VoteButtonInteractive({
     setVote(newState);
 
     if (newState === "up") {
-      toast.success("Voto positivo registrado", {
-        description: "Obrigado por sinalizar interesse nesta feature.",
-        duration: 2500,
-      });
+      toastSuccess(
+        "Voto positivo registrado",
+        "Obrigado por sinalizar interesse nesta feature."
+      );
     } else if (newState === "oppose") {
-      toast.success("Sinalização registrada", {
-        description:
-          "Anotamos que esta feature não interessa pra você. Nos ajuda a priorizar.",
-        duration: 3000,
-      });
+      toastSuccess(
+        "Sinalização registrada",
+        "Anotamos que esta feature não interessa pra você. Nos ajuda a priorizar."
+      );
     }
   };
 

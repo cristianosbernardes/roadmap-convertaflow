@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   ChevronDown,
-  ChevronRight,
   CornerDownRight,
   Pin,
   Reply,
@@ -43,6 +42,7 @@ export function CommentThread({
 }) {
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const baseId = useId();
 
   const threads = useMemo<ThreadedComment[]>(() => {
     const topLevel = comments.filter((c) => c.parentCommentId == null);
@@ -93,6 +93,17 @@ export function CommentThread({
       {threads.map(({ comment, replies }) => {
         const isCollapsed = collapsed.has(comment.id);
         const replyCount = replies.length;
+        const isExpanded = replyCount > 0 && !isCollapsed;
+        const repliesPanelId = `comment-replies-${baseId}-${comment.id}`;
+        // S-D-08 (Polish — animacao suave expand/collapse de replies):
+        // Heuristica de max-height por reply count. Cada reply costuma
+        // medir ~180–260px (header + body + actions). Reservamos 320px
+        // por reply + 320px de folga pro reply-editor inline (quando
+        // aberto). Valor seguro acima do conteudo real evita clip;
+        // CSS transition exige valor concreto (auto nao anima).
+        const repliesMaxHeight = isExpanded
+          ? `${replies.length * 320 + 320}px`
+          : "0px";
 
         return (
           <li
@@ -121,22 +132,30 @@ export function CommentThread({
                 isReplying={replyingTo === comment.id}
               />
 
-              {/* Toggle "N respostas" — so aparece se tiver replies */}
+              {/* Toggle "N respostas" — so aparece se tiver replies.
+                  S-D-08: chevron unico que rotaciona 0deg/180deg
+                  (transition-transform) em vez de swap ChevronRight/Down. */}
               {replyCount > 0 && (
                 <button
                   type="button"
                   onClick={() => toggleCollapse(comment.id)}
+                  aria-expanded={isExpanded}
+                  aria-controls={repliesPanelId}
                   // S-C-10 (Auditoria UX-UI v2 — D.3 / Apple HIG / WCAG 2.5.5):
                   // touch target >= 44px no mobile (max-md:min-h-[44px]).
                   // Desktop mantem h-7 (28px) — sem regressao visual.
                   className="inline-flex items-center gap-1 mt-3 h-7 max-md:min-h-[44px] px-2 -ml-2 rounded-[7px] text-[12px] font-medium transition-colors hover:bg-[var(--surface-low)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface-card)]"
                   style={{ color: "var(--brand-primary)" }}
                 >
-                  {isCollapsed ? (
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  ) : (
-                    <ChevronDown className="h-3.5 w-3.5" />
-                  )}
+                  <ChevronDown
+                    className="h-3.5 w-3.5 transition-transform duration-200 ease-out"
+                    style={{
+                      transform: isExpanded
+                        ? "rotate(0deg)"
+                        : "rotate(-90deg)",
+                    }}
+                    aria-hidden="true"
+                  />
                   {replyCount} {replyCount === 1 ? "resposta" : "respostas"}
                 </button>
               )}
@@ -156,58 +175,74 @@ export function CommentThread({
               )}
             </div>
 
-            {/* Replies aninhadas (indentadas via border-left) */}
-            {replyCount > 0 && !isCollapsed && (
+            {/* Replies aninhadas (indentadas via border-left).
+                S-D-08: container sempre renderiza no DOM (mesmo collapsed),
+                anima max-height + opacity em 200ms ease-out. aria-hidden
+                + visibility=hidden no estado fechado removem do tab order. */}
+            {replyCount > 0 && (
               <div
-                className="ml-4 mb-3 mr-3 pl-4"
+                id={repliesPanelId}
+                role="region"
+                aria-hidden={!isExpanded}
+                className="overflow-hidden transition-all duration-200 ease-out"
                 style={{
-                  borderLeft: "2px solid var(--border-secondary)",
+                  maxHeight: repliesMaxHeight,
+                  opacity: isExpanded ? 1 : 0,
+                  visibility: isExpanded ? "visible" : "hidden",
+                  willChange: "max-height, opacity",
                 }}
               >
-                <ul className="flex flex-col gap-2">
-                  {replies.map((reply) => (
-                    <li
-                      key={reply.id}
-                      className="rounded-[7px] p-3"
-                      style={{
-                        background: reply.isOfficial
-                          ? "var(--info-bg)"
-                          : "var(--surface-card)",
-                        border: reply.isOfficial
-                          ? "1px solid var(--brand-primary)"
-                          : "1px solid var(--border-secondary)",
-                      }}
-                    >
-                      <CommentBody
-                        comment={reply}
-                        variant="reply"
-                        onReplyClick={() =>
-                          setReplyingTo(
-                            replyingTo === reply.id ? null : reply.id
-                          )
-                        }
-                        isReplying={replyingTo === reply.id}
-                      />
-                    </li>
-                  ))}
-                </ul>
+                <div
+                  className="ml-4 mb-3 mr-3 pl-4"
+                  style={{
+                    borderLeft: "2px solid var(--border-secondary)",
+                  }}
+                >
+                  <ul className="flex flex-col gap-2">
+                    {replies.map((reply) => (
+                      <li
+                        key={reply.id}
+                        className="rounded-[7px] p-3"
+                        style={{
+                          background: reply.isOfficial
+                            ? "var(--info-bg)"
+                            : "var(--surface-card)",
+                          border: reply.isOfficial
+                            ? "1px solid var(--brand-primary)"
+                            : "1px solid var(--border-secondary)",
+                        }}
+                      >
+                        <CommentBody
+                          comment={reply}
+                          variant="reply"
+                          onReplyClick={() =>
+                            setReplyingTo(
+                              replyingTo === reply.id ? null : reply.id
+                            )
+                          }
+                          isReplying={replyingTo === reply.id}
+                        />
+                      </li>
+                    ))}
+                  </ul>
 
-                {/* Reply editor pra uma das replies — threading shallow:
-                    a nova reply vai pro mesmo parent top-level, mas
-                    visualmente mostra "Em resposta a @autorDaReply" */}
-                {replyingTo != null &&
-                  replies.some((r) => r.id === replyingTo) && (
-                    <div className="mt-3">
-                      <CommentEditor
-                        featureSlug={featureSlug ?? ""}
-                        variant="reply"
-                        parentCommentId={comment.id}
-                        autoFocus
-                        onCancel={() => setReplyingTo(null)}
-                        onSubmitted={() => setReplyingTo(null)}
-                      />
-                    </div>
-                  )}
+                  {/* Reply editor pra uma das replies — threading shallow:
+                      a nova reply vai pro mesmo parent top-level, mas
+                      visualmente mostra "Em resposta a @autorDaReply" */}
+                  {replyingTo != null &&
+                    replies.some((r) => r.id === replyingTo) && (
+                      <div className="mt-3">
+                        <CommentEditor
+                          featureSlug={featureSlug ?? ""}
+                          variant="reply"
+                          parentCommentId={comment.id}
+                          autoFocus
+                          onCancel={() => setReplyingTo(null)}
+                          onSubmitted={() => setReplyingTo(null)}
+                        />
+                      </div>
+                    )}
+                </div>
               </div>
             )}
           </li>

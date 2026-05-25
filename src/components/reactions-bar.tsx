@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SmilePlus } from "lucide-react";
-import { toast } from "sonner";
+import { toastSuccess } from "@/lib/toast-presets";
 import {
   REACTION_EMOJIS,
   getLocalReactionsForComment,
@@ -133,9 +133,10 @@ export function ReactionsBar({
         return next;
       });
 
-      // Toast editorial (curto, positivo)
+      // Toast editorial (curto, positivo). Preset toastSuccess = 2500ms
+      // (alinhado com vote/comment em vez do 1500ms antigo — S-D-09).
       if (nowReacted && !wasReacted) {
-        toast.success("Reação registrada", { duration: 1500 });
+        toastSuccess("Reação registrada");
       }
     },
     [commentId]

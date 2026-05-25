@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Send, AlertCircle, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toastSuccess } from "@/lib/toast-presets";
 import { useUserPermissions } from "@/hooks/use-user-permissions";
 import { canComment, getCommentBlockReason, LIMITS } from "@/lib/permissions";
 import { PermissionGateModal } from "@/components/permission-gate";
@@ -104,10 +104,10 @@ export function CommentEditor({
     }
 
     setTimeout(() => {
-      toast.success(isReply ? "Resposta enviada" : "Comentário enviado", {
-        description: successDescription,
-        duration: 2500,
-      });
+      toastSuccess(
+        isReply ? "Resposta enviada" : "Comentário enviado",
+        successDescription
+      );
       setBody("");
       setSubmitting(false);
       onSubmitted?.();

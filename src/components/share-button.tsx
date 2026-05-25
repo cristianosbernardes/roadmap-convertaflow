@@ -9,7 +9,7 @@ import {
   Twitter,
   Smartphone,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toastSuccess, toastError } from "@/lib/toast-presets";
 
 /**
  * Botão "Compartilhar" com dropdown de canais (S-C-06).
@@ -101,12 +101,12 @@ export function ShareButton({
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard) {
         await navigator.clipboard.writeText(url);
-        toast.success("Link copiado");
+        toastSuccess("Link copiado");
       } else {
         throw new Error("Clipboard API indisponível");
       }
     } catch {
-      toast.error("Erro ao copiar");
+      toastError("Erro ao copiar");
     } finally {
       setOpen(false);
     }

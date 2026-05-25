@@ -76,7 +76,7 @@
   /* ── TEXT ── */
   --text-primary:        #02174a;
   --text-secondary:      #424751;
-  --text-muted:          #727782;
+  --text-muted:          #5b6470;  /* era #727782 — WCAG AA (≥4.5:1) em surface-card/base/low/background — ADR-037 */
   --text-inverse:        #ffffff;
   --text-accent:         #a8d4f5;
 
@@ -158,7 +158,7 @@
   --secondary-foreground: #02174a;
 
   --muted:           #efedf4;
-  --muted-foreground: #727782;
+  --muted-foreground: #5b6470;  /* sincronizado com --text-muted (ADR-037, WCAG AA) */
 
   --accent:           #e8f0fd;
   --accent-foreground: #1e7fd4;
